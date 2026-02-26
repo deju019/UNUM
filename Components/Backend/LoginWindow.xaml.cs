@@ -46,7 +46,7 @@ namespace UNUM
                             MessageBox.Show("�Login exitoso! Bienvenido " + usuario, "Acceso Concedido", MessageBoxButton.OK, MessageBoxImage.Information);
 
                             // Abrimos la ventana de registro/principal
-                            RegisterWindow ventanaPrincipal = new RegisterWindow();
+                            MainWindow ventanaPrincipal = new MainWindow(usuarioId);
                             ventanaPrincipal.Show();
 
                             // Cerramos esta ventana de Login
