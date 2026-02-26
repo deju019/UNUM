@@ -36,7 +36,7 @@ namespace UNUM
                 {
                     conn.Open();
 
-                    string query = "INSERT INTO Usuarios (NombreUsuario, Contraseña) VALUES (@user, @pass)";
+                    string query = "INSERT INTO Usuarios (NombreUsuario, Contrasena) VALUES (@user, @pass)";
 
                     using (MySqlCommand cmd = new MySqlCommand(query, conn))
                     {
