@@ -18,7 +18,7 @@ namespace UNUM
 
             if (string.IsNullOrWhiteSpace(usuario) || string.IsNullOrWhiteSpace(password))
             {
-                MessageBox.Show("Por favor, introduce usuario y contraseña.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Por favor, introduce usuario y contraseï¿½a.", "Validaciï¿½n", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -43,10 +43,10 @@ namespace UNUM
                         if (resultado != null)
                         {
                             int usuarioId = Convert.ToInt32(resultado);
-                            MessageBox.Show("¡Login exitoso! Bienvenido " + usuario, "Acceso Concedido", MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show("ï¿½Login exitoso! Bienvenido " + usuario, "Acceso Concedido", MessageBoxButton.OK, MessageBoxImage.Information);
 
                             // Abrimos la ventana de registro/principal
-                            MainWindow ventanaPrincipal = new MainWindow();
+                            RegisterWindow ventanaPrincipal = new RegisterWindow();
                             ventanaPrincipal.Show();
 
                             // Cerramos esta ventana de Login
@@ -54,13 +54,13 @@ namespace UNUM
                         }
                         else
                         {
-                            MessageBox.Show("Usuario o contraseña incorrectos.", "Error de Autenticación", MessageBoxButton.OK, MessageBoxImage.Error);
+                            MessageBox.Show("Usuario o contraseï¿½a incorrectos.", "Error de Autenticaciï¿½n", MessageBoxButton.OK, MessageBoxImage.Error);
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Error de base de datos:\n" + ex.Message, "Fallo Crítico", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Error de base de datos:\n" + ex.Message, "Fallo Crï¿½tico", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
