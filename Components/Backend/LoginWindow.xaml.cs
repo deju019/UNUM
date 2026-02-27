@@ -31,7 +31,7 @@ namespace UNUM
                     conn.Open();
 
                     // Consulta para verificar las credenciales
-                    string query = "SELECT Id FROM Usuarios WHERE NombreUsuario = @user AND Contrasena = @pass";
+                    string query = "SELECT Id FROM Usuarios WHERE NombreUsuario = @user AND Contraseña = @pass";
 
                     using (MySqlCommand cmd = new MySqlCommand(query, conn))
                     {
