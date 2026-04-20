@@ -1,17 +1,17 @@
 <Window x:Class="UNUM.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="UNUM - Panel de Control"
-        Height="600"
-        Width="850"
+        Title="UNUM - Dashboard Financiero"
+        Height="650"
+        Width="1000"
         WindowStartupLocation="CenterScreen">
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
+<<<<<<< HEAD
         <DockPanel Grid.Row="0"
                    Margin="0,0,0,20">
             <TextBlock x:Name="txtBienvenida"
@@ -41,128 +41,255 @@
                     FontWeight="Bold"
                     DockPanel.Dock="Right"/>
         </DockPanel>
+=======
+        <Border Grid.Column="0"
+                Background="#2C3E50">
+            <StackPanel Margin="0,30,0,0">
+                <TextBlock Text="UNUM"
+                           Foreground="White"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,40"/>
+>>>>>>> origin/UR03-SimluadorDeAhorro
 
-        <Border Grid.Row="1"
-                Background="#FFF0F0F0"
-                CornerRadius="5"
-                Padding="15"
-                Margin="0,0,0,20">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="1.2*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="2*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+                <Button x:Name="btnMenuTransacciones"
+                        Content="📊 Mis Transacciones"
+                        Height="45"
+                        Background="#34495E"
+                        Foreground="White"
+                        FontSize="14"
+                        FontWeight="Bold"
+                        BorderThickness="0"
+                        Margin="0,0,0,10"
+                        Click="btnMenuTransacciones_Click"/>
+
+                <Button x:Name="btnMenuSimulador"
+                        Content="🎯 Mis Objetivos"
+                        Height="45"
+                        Background="Transparent"
+                        Foreground="White"
+                        FontSize="14"
+                        FontWeight="Bold"
+                        BorderThickness="0"
+                        Margin="0,0,0,40"
+                        Click="btnMenuSimulador_Click"/>
+
+                <Border x:Name="borderSaldo"
+                        Margin="15,0,15,0"
+                        Background="#27AE60"
+                        CornerRadius="8"
+                        Padding="10">
+                    <StackPanel>
+                        <TextBlock Text="Saldo Actual"
+                                   Foreground="White"
+                                   FontSize="12"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="txtSaldoTotal"
+                                   Text="0.00 €"
+                                   Foreground="White"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <Button x:Name="btnCerrarSesion"
+                        Content="Cerrar Sesión"
+                        Height="35"
+                        Background="#E74C3C"
+                        Foreground="White"
+                        FontWeight="Bold"
+                        BorderThickness="0"
+                        Margin="20,100,20,0"
+                        Click="btnCerrarSesion_Click"/>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Column="1"
+              Margin="20">
+
+            <Grid x:Name="panelTransacciones"
+                  Visibility="Visible">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Text="Tipo"
-                           Grid.Column="0"
-                           FontWeight="Bold"/>
-                <ComboBox x:Name="cmbTipo"
+                <Border Grid.Row="0"
+                        Background="#FFF0F0F0"
+                        CornerRadius="5"
+                        Padding="15"
+                        Margin="0,0,0,20">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="1.2*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Tipo"
+                                   Grid.Column="0"
+                                   FontWeight="Bold"/>
+                        <ComboBox x:Name="cmbTipo"
+                                  Grid.Column="0"
+                                  Margin="0,20,10,0"
+                                  Height="25">
+                            <ComboBoxItem Content="Gasto"
+                                          IsSelected="True"/>
+                            <ComboBoxItem Content="Ingreso"/>
+                        </ComboBox>
+
+                        <TextBlock Text="Categoría"
+                                   Grid.Column="1"
+                                   FontWeight="Bold"/>
+                        <ComboBox x:Name="cmbCategoria"
+                                  Grid.Column="1"
+                                  Margin="0,20,10,0"
+                                  Height="25">
+                            <ComboBoxItem Content="Ocio"
+                                          IsSelected="True"/>
+                            <ComboBoxItem Content="Nómina"/>
+                            <ComboBoxItem Content="Supermercado"/>
+                            <ComboBoxItem Content="Facturas"/>
+                            <ComboBoxItem Content="Otros"/>
+                        </ComboBox>
+
+                        <TextBlock Text="Importe (€)"
+                                   Grid.Column="2"
+                                   FontWeight="Bold"/>
+                        <TextBox x:Name="txtImporte"
+                                 Grid.Column="2"
+                                 Margin="0,20,10,0"
+                                 Height="25"/>
+
+                        <TextBlock Text="Descripción"
+                                   Grid.Column="3"
+                                   FontWeight="Bold"/>
+                        <TextBox x:Name="txtDescripcion"
+                                 Grid.Column="3"
+                                 Margin="0,20,10,0"
+                                 Height="25"/>
+
+                        <Button x:Name="btnGuardarTransaccion"
+                                Content="Añadir"
+                                Grid.Column="4"
+                                Width="80"
+                                Height="25"
+                                Margin="0,20,0,0"
+                                Click="btnGuardarTransaccion_Click"
+                                Background="#FF28A745"
+                                Foreground="White"
+                                FontWeight="Bold"/>
+                    </Grid>
+                </Border>
+
+                <DataGrid x:Name="gridTransacciones"
                           Grid.Row="1"
-                          Grid.Column="0"
-                          Margin="0,5,10,0"
-                          Height="25">
-                    <ComboBoxItem Content="Gasto"
-                                  IsSelected="True"/>
-                    <ComboBoxItem Content="Ingreso"/>
-                </ComboBox>
+                          AutoGenerateColumns="True"
+                          IsReadOnly="True"
+                          Background="White"
+                          AlternatingRowBackground="#FFF9F9F9"
+                          SelectionMode="Single"/>
 
-                <TextBlock Text="Categoría"
-                           Grid.Column="1"
-                           FontWeight="Bold"/>
-                <ComboBox x:Name="cmbCategoria"
-                          Grid.Row="1"
-                          Grid.Column="1"
-                          Margin="0,5,10,0"
-                          Height="25">
-                    <ComboBoxItem Content="Ocio"
-                                  IsSelected="True"/>
-                    <ComboBoxItem Content="Nómina"/>
-                    <ComboBoxItem Content="Supermercado"/>
-                    <ComboBoxItem Content="Facturas"/>
-                    <ComboBoxItem Content="Otros"/>
-                </ComboBox>
+                <Grid Grid.Row="2"
+                      Margin="0,10,0,0">
+                    <Button x:Name="btnRefrescar"
+                            Content="🔄 Actualizar Tabla"
+                            Height="30"
+                            Width="150"
+                            HorizontalAlignment="Left"
+                            Click="btnRefrescar_Click"
+                            Background="#FF17A2B8"
+                            Foreground="White"
+                            FontWeight="Bold"/>
+                    <Button x:Name="btnBorrarTransaccion"
+                            Content="Eliminar Seleccionada"
+                            Height="30"
+                            Width="160"
+                            HorizontalAlignment="Right"
+                            Click="btnBorrarTransaccion_Click"
+                            Background="#FFDC3545"
+                            Foreground="White"
+                            FontWeight="Bold"/>
+                </Grid>
+            </Grid>
 
-                <TextBlock Text="Importe (€)"
-                           Grid.Column="2"
-                           FontWeight="Bold"/>
-                <TextBox x:Name="txtImporte"
-                         Grid.Row="1"
-                         Grid.Column="2"
-                         Margin="0,5,10,0"
-                         Height="25"/>
+            <Grid x:Name="panelSimulador"
+                    Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-                <TextBlock Text="Descripción"
-                           Grid.Column="3"
-                           FontWeight="Bold"/>
-                <TextBox x:Name="txtDescripcion"
-                         Grid.Row="1"
-                         Grid.Column="3"
-                         Margin="0,5,10,0"
-                         Height="25"/>
+                <StackPanel Orientation="Horizontal"
+                        Margin="0,0,0,15">
+                    <Button x:Name="btnNuevoObjetivo"
+                            Content="➕ Nuevo Objetivo"
+                            Width="150"
+                            Height="35"
+                            Click="btnNuevoObjetivo_Click"
+                            Background="#FF6F42C1"
+                            Foreground="White"
+                            FontWeight="Bold"
+                            Margin="0,0,10,0"/>
+                    <Button x:Name="btnBorrarObjetivo"
+                            Content="🗑️ Borrar Seleccionado"
+                            Width="170"
+                            Height="35"
+                            Click="btnBorrarObjetivo_Click"
+                            Background="#FFDC3545"
+                            Foreground="White"
+                            FontWeight="Bold"/>
+                </StackPanel>
 
-                <Button x:Name="btnGuardarTransaccion"
-                        Content="Añadir"
+                <DataGrid x:Name="gridObjetivos"
                         Grid.Row="1"
-                        Grid.Column="4"
-                        Width="80"
-                        Height="25"
-                        Margin="0,5,0,0"
-                        Click="btnGuardarTransaccion_Click"
-                        Background="#FF28A745"
-                        Foreground="White"
-                        FontWeight="Bold"/>
+                        AutoGenerateColumns="False"
+                        IsReadOnly="True"
+                        Background="White"
+                        AlternatingRowBackground="#FFF9F9F9"
+                        SelectionMode="Single">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Prioridad"
+                                Binding="{Binding PrioridadTexto}"
+                                Width="80"/>
+                        <DataGridTextColumn Header="Meta"
+                                Binding="{Binding Nombre}"
+                                Width="*"/>
+                        <DataGridTextColumn Header="Ahorrado"
+                                Binding="{Binding AhorroActual, StringFormat={}{0:0.00} €}"
+                                Width="90"/>
+                        <DataGridTextColumn Header="Coste"
+                                Binding="{Binding CosteTotal, StringFormat={}{0:0.00} €}"
+                                Width="90"/>
+
+                        <DataGridTemplateColumn Header="Progreso"
+                                Width="150">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <ProgressBar Minimum="0"
+                                            Maximum="{Binding CosteTotal}"
+                                            Value="{Binding AhorroActual}"
+                                            Height="15"
+                                            Margin="5,0"
+                                            Foreground="#28A745"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTextColumn Header="%"
+                                Binding="{Binding Porcentaje, StringFormat={}{0:0.0}%}"
+                                Width="60"/>
+                        <DataGridTextColumn Header="Id"
+                                Binding="{Binding Id}"
+                                Visibility="Hidden"/>
+                    </DataGrid.Columns>
+                </DataGrid>
             </Grid>
-        </Border>
 
-        <Grid Grid.Row="2">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-
-            <DataGrid x:Name="gridTransacciones"
-                    Grid.Row="0"
-                    AutoGenerateColumns="True"
-                    IsReadOnly="True"
-                    Background="White"
-                    AlternatingRowBackground="#FFF9F9F9"
-                    SelectionMode="Single"/>
-
-            <Grid Grid.Row="1"
-                    Margin="0,10,0,0">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <Button x:Name="btnRefrescar"
-                        Grid.Column="0"
-                        Content="🔄 Actualizar Tabla"
-                        Height="30"
-                        Width="150"
-                        Click="btnRefrescar_Click"
-                        Background="#FF17A2B8"
-                        Foreground="White"
-                        FontWeight="Bold"/>
-
-                <Button x:Name="btnBorrarTransaccion"
-                        Grid.Column="2"
-                        Content="Eliminar Transacción"
-                        Height="30"
-                        Width="200"
-                        Click="btnBorrarTransaccion_Click"
-                        Background="#FFDC3545"
-                        Foreground="White"
-                        FontWeight="Bold"/>
-            </Grid>
         </Grid>
     </Grid>
 </Window>
