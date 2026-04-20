@@ -19,6 +19,10 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
+<<<<<<< HEAD
 		SolutionGuid = {9C6C76B2-F988-4CC0-A219-D3E315676824}
+=======
+		SolutionGuid = {C102E5FA-7D52-4680-ACCC-D2A38A2385CD}
+>>>>>>> origin/UR02-CRUDTransacciones
 	EndGlobalSection
 EndGlobal

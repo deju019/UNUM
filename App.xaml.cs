@@ -1,6 +1,5 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
+﻿using System.Windows;
+using UNUM.Services;
 
 namespace UNUM
 {
@@ -9,6 +8,20 @@ namespace UNUM
     /// </summary>
     public partial class App : Application
     {
+        protected override void OnStartup(StartupEventArgs e)
+        {
+            try
+            {
+                var authService = new AuthService();
+                authService.EnsureDemoUser("unum_demo", "Demo1234");
+            }
+            catch
+            {
+                // No bloquear el arranque de la app si la BD no esta disponible.
+            }
+
+            base.OnStartup(e);
+        }
     }
 
 }
