@@ -11,37 +11,6 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-<<<<<<< HEAD
-        <DockPanel Grid.Row="0"
-                   Margin="0,0,0,20">
-            <TextBlock x:Name="txtBienvenida"
-                       Text="Cargando panel..."
-                       FontSize="24"
-                       FontWeight="Bold"
-                       VerticalAlignment="Center"/>
-            <Button x:Name="btnObjetivos"
-                Content="Objetivos"
-                Width="100"
-                Height="30"
-                Margin="0,0,8,0"
-                HorizontalAlignment="Right"
-                Click="btnObjetivos_Click"
-                Background="#FF6C757D"
-                Foreground="White"
-                FontWeight="Bold"
-                DockPanel.Dock="Right"/>
-            <Button x:Name="btnCerrarSesion"
-                    Content="Cerrar Sesión"
-                    Width="100"
-                    Height="30"
-                    HorizontalAlignment="Right"
-                    Click="btnCerrarSesion_Click"
-                    Background="#FFDC3545"
-                    Foreground="White"
-                    FontWeight="Bold"
-                    DockPanel.Dock="Right"/>
-        </DockPanel>
-=======
         <Border Grid.Column="0"
                 Background="#2C3E50">
             <StackPanel Margin="0,30,0,0">
@@ -51,7 +20,6 @@
                            FontWeight="Bold"
                            HorizontalAlignment="Center"
                            Margin="0,0,0,40"/>
->>>>>>> origin/UR03-SimluadorDeAhorro
 
                 <Button x:Name="btnMenuTransacciones"
                         Content="📊 Mis Transacciones"

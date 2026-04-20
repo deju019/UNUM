@@ -2,6 +2,7 @@ using MySql.Data.MySqlClient;
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using UNUM.Infrastructure;
 
 namespace UNUM
 {
@@ -25,28 +26,25 @@ namespace UNUM
 
             int prioridad = Convert.ToInt32(((ComboBoxItem)cmbPrioridad.SelectedItem).Tag);
 
-            string connectionString = "Server=127.0.0.1; Port=3306; Database=UNUM; Uid=root; Pwd=admin123;";
-            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            using MySqlConnection conn = DbConnectionFactory.CreateOpenConnection();
+            try
             {
-                try
+                string query = "INSERT INTO Objetivos (UsuarioId, Nombre, CosteTotal, AhorroActual, Prioridad) VALUES (@uId, @nom, @coste, @ahorro, @prio)";
+                using (MySqlCommand cmd = new MySqlCommand(query, conn))
                 {
-                    conn.Open();
-                    string query = "INSERT INTO Objetivos (UsuarioId, Nombre, CosteTotal, AhorroActual, Prioridad) VALUES (@uId, @nom, @coste, @ahorro, @prio)";
-                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@uId", _usuarioId);
-                        cmd.Parameters.AddWithValue("@nom", txtNombre.Text);
-                        cmd.Parameters.AddWithValue("@coste", coste);
-                        cmd.Parameters.AddWithValue("@ahorro", ahorro);
-                        cmd.Parameters.AddWithValue("@prio", prioridad);
-                        cmd.ExecuteNonQuery();
-                    }
-                    this.DialogResult = true; // Cierra el modal e indica éxito al Dashboard
+                    cmd.Parameters.AddWithValue("@uId", _usuarioId);
+                    cmd.Parameters.AddWithValue("@nom", txtNombre.Text);
+                    cmd.Parameters.AddWithValue("@coste", coste);
+                    cmd.Parameters.AddWithValue("@ahorro", ahorro);
+                    cmd.Parameters.AddWithValue("@prio", prioridad);
+                    cmd.ExecuteNonQuery();
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Error al guardar: " + ex.Message);
-                }
+
+                this.DialogResult = true; // Cierra el modal e indica éxito al Dashboard
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al guardar: " + ex.Message);
             }
         }
     }

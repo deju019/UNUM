@@ -275,3 +275,51 @@ CREATE TABLE IF NOT EXISTS Objetivos (
 ### 13.3 Proximo paso sugerido
 
 - Fase 2 siguiente: mejorar dashboard con resumen (saldo total, ingresos, gastos, ahorro acumulado y avance por prioridad).
+
+## 14) Estado Consolidado Actual (2026-04-20 - tarde)
+
+### 14.1 Rama y estado de trabajo
+
+- Rama activa: integration/ur02-ur03
+- El trabajo se mantiene en esta rama por decision del usuario (sin merge a main por ahora).
+- Hay cambios locales pendientes de commit en:
+    - App.xaml
+    - Components/Frontend/MainWindow.xaml
+    - Components/Backend/MainWindow.xaml.cs
+    - Components/Backend/LoginWindow.xaml.cs
+    - Components/Backend/ObjetivoModalWindow.xaml.cs
+    - Components/Backend/TimerWindow.xaml.cs
+
+### 14.2 Integracion y estabilizacion aplicadas
+
+- Se resolvieron conflictos de merge que quedaban incrustados en:
+    - MainWindow.xaml
+    - MainWindow.xaml.cs
+    - LoginWindow.xaml.cs
+- Se restauro el flujo de arranque funcional de la app:
+    - StartupUri apunta a Components/Frontend/InicioWindow.xaml
+- Se unifico MainWindow con enfoque por servicios:
+    - TransactionService para transacciones
+    - ObjectiveService para objetivos
+    - eliminada mezcla de SQL directo residual en MainWindow
+- Se elimino cadena de conexion hardcodeada en ObjetivoModalWindow y se usa DbConnectionFactory.
+
+### 14.3 Validacion tecnica actual
+
+- Compilacion de solucion:
+    - dotnet build UNUM.sln -> correcta
+    - 0 errores
+    - 0 advertencias
+- Warning CS8622 en TimerWindow resuelto ajustando firma de evento:
+    - Timer_Tick(object? sender, EventArgs e)
+
+### 14.4 Estado funcional esperado
+
+- Inicio -> Login/Registro -> MainWindow operativo.
+- Modulo de transacciones operativo (alta/listado/borrado/refresco y calculo de saldo en UI).
+- Modulo de objetivos operativo desde panel simulador y modal de alta.
+- Autenticacion y registro por AuthService con hash BCrypt y compatibilidad de columna Contrasena/Contraseña.
+
+### 14.5 Pendiente inmediato recomendado
+
+- Commit de estabilizacion en integration/ur02-ur03 para fijar este punto limpio antes de continuar nuevas funcionalidades.

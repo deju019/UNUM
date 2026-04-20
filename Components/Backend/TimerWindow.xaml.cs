@@ -14,14 +14,14 @@ namespace UNUM
         public TimerWindow()
         {
             InitializeComponent();
-            
+
             // Configuramos el reloj para que haga "Tick" cada 1 segundo exacto
             _timer = new DispatcherTimer();
             _timer.Interval = TimeSpan.FromSeconds(1);
             _timer.Tick += Timer_Tick;
         }
 
-        private void Timer_Tick(object sender, EventArgs e)
+        private void Timer_Tick(object? sender, EventArgs e)
         {
             _segundosRestantes--;
 
@@ -39,7 +39,7 @@ namespace UNUM
             if (_segundosRestantes == 0)
             {
                 _slideActual++;
-                
+
                 if (_slideActual > 20)
                 {
                     _timer.Stop();
@@ -47,11 +47,11 @@ namespace UNUM
                     txtSlide.Text = "¡Presentación completada!";
                     return;
                 }
-                
+
                 _segundosRestantes = 20; // Reseteamos el reloj
                 txtSlide.Text = $"Diapositiva: {_slideActual} / 20";
             }
-            
+
             if (_segundosRestantes > 0)
             {
                 txtTiempo.Text = _segundosRestantes.ToString();

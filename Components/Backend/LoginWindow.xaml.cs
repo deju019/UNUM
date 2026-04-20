@@ -31,39 +31,9 @@ namespace UNUM
                 {
                     MessageBox.Show("Login exitoso. Bienvenido " + usuario, "Acceso Concedido", MessageBoxButton.OK, MessageBoxImage.Information);
 
-<<<<<<< HEAD
                     MainWindow ventanaPrincipal = new MainWindow(usuarioId.Value);
                     ventanaPrincipal.Show();
                     Close();
-=======
-                    // Consulta para verificar las credenciales
-                    string query = "SELECT Id FROM Usuarios WHERE NombreUsuario = @user AND Contraseña = @pass";
-
-                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@user", usuario);
-                        cmd.Parameters.AddWithValue("@pass", password);
-
-                        object resultado = cmd.ExecuteScalar();
-
-                        if (resultado != null)
-                        {
-                            int usuarioId = Convert.ToInt32(resultado);
-                            MessageBox.Show("�Login exitoso! Bienvenido " + usuario, "Acceso Concedido", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                            // Abrimos la ventana de registro/principal
-                            MainWindow ventanaPrincipal = new MainWindow(usuarioId);
-                            ventanaPrincipal.Show();
-
-                            // Cerramos esta ventana de Login
-                            this.Close();
-                        }
-                        else
-                        {
-                            MessageBox.Show("Usuario o contrase�a incorrectos.", "Error de Autenticaci�n", MessageBoxButton.OK, MessageBoxImage.Error);
-                        }
-                    }
->>>>>>> origin/UR03-SimluadorDeAhorro
                 }
                 else
                 {
