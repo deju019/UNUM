@@ -322,4 +322,347 @@ CREATE TABLE IF NOT EXISTS Objetivos (
 
 ### 14.5 Pendiente inmediato recomendado
 
-- Commit de estabilizacion en integration/ur02-ur03 para fijar este punto limpio antes de continuar nuevas funcionalidades.
+- Commit de estabilizacion completado.
+
+## 15) Avance Implementado - Dashboard Resumen (2026-04-20)
+
+### 15.1 Commit de estabilizacion registrado
+
+- Commit realizado en integration/ur02-ur03:
+    - 45c310c
+    - mensaje: fix: estabilizar integracion y limpiar conflictos
+
+### 15.2 Mejora funcional aplicada
+
+- Se anadio resumen financiero visual en el panel de transacciones de MainWindow:
+    - total ingresos
+    - total gastos
+    - balance neto
+- Cambios de UI en Components/Frontend/MainWindow.xaml:
+    - nueva fila de tarjetas resumen entre formulario y tabla
+    - nuevos TextBlock: txtTotalIngresos, txtTotalGastos, txtBalanceNeto
+
+### 15.3 Cambios de logica aplicados
+
+- Se reemplazo el calculo de saldo por un calculo de resumen completo en Components/Backend/MainWindow.xaml.cs:
+    - nuevo metodo: CalcularResumenFinanciero(DataTable)
+    - calcula ingresos acumulados, gastos acumulados y balance
+    - mantiene actualizacion de txtSaldoTotal y color de borderSaldo segun signo
+
+### 15.4 Estado actual para continuar
+
+- Quedan pendientes de commit los cambios del nuevo resumen en:
+    - Components/Frontend/MainWindow.xaml
+    - Components/Backend/MainWindow.xaml.cs
+- Siguiente iteracion sugerida:
+    - filtros por rango de fechas y categoria
+    - resumen mensual (mes actual) separado del total historico
+
+## 16) Avance Implementado - Filtros de Transacciones (2026-04-20)
+
+### 16.1 Mejora funcional aplicada
+
+- Se implementaron filtros en el panel de transacciones por:
+    - categoria
+    - fecha desde
+    - fecha hasta
+- Se anadieron botones de accion:
+    - Aplicar filtros
+    - Limpiar filtros
+
+### 16.2 Cambios de UI
+
+- Components/Frontend/MainWindow.xaml:
+    - nueva barra de filtros entre tarjetas resumen y DataGrid de transacciones
+    - nuevos controles:
+        - cmbFiltroCategoria
+        - dpFechaDesde
+        - dpFechaHasta
+        - btnAplicarFiltros
+        - btnLimpiarFiltros
+
+### 16.3 Cambios de logica
+
+- Components/Backend/MainWindow.xaml.cs:
+    - nueva cache local de transacciones: \_transacciones (DataTable)
+    - nuevo metodo AplicarFiltrosTransacciones()
+    - filtro aplicado con DataView.RowFilter sobre categoria/fechas
+    - validacion: fecha desde no puede ser mayor que fecha hasta
+    - el resumen financiero se recalcula sobre el conjunto filtrado visible
+
+### 16.4 Validacion tecnica
+
+- Compilacion de solucion tras cambios:
+    - dotnet build UNUM.sln correcta
+    - 0 errores
+    - 0 advertencias
+
+## 17) Avance Implementado - Tipo y Periodo Rapido (2026-04-20)
+
+### 17.1 Mejora funcional aplicada
+
+- Se ampliaron los filtros de transacciones con:
+    - tipo (Todos, Ingreso, Gasto)
+    - periodo rapido (Historico, Mes actual)
+- Los filtros de tipo/periodo se combinan con categoria y rango de fechas manual.
+
+### 17.2 Cambios de UI
+
+- Components/Frontend/MainWindow.xaml:
+    - nuevos controles en barra de filtros:
+        - cmbFiltroTipo
+        - cmbFiltroPeriodo
+    - reajuste del layout de columnas para soportar mas criterios.
+
+### 17.3 Cambios de logica
+
+- Components/Backend/MainWindow.xaml.cs:
+    - AplicarFiltrosTransacciones() ahora incorpora filtro por Tipo.
+    - AplicarFiltrosTransacciones() incorpora filtro por periodo Mes actual (primer y ultimo dia del mes).
+    - btnLimpiarFiltros_Click ahora resetea tambien tipo y periodo.
+
+### 17.4 Validacion tecnica
+
+- Validacion de XAML y C# sin errores de editor.
+- Build lanzado durante ejecucion de la app mostro bloqueos de archivo UNUM.exe (MSB3026) por proceso en uso.
+- No se detectaron errores de compilacion de codigo en los archivos modificados.
+
+## 18) Avance Implementado - Coherencia Tipo/Categoria (2026-04-20)
+
+### 18.1 Regla de negocio aplicada
+
+- En alta de transacciones, las categorias disponibles ahora dependen del tipo:
+    - Ingreso: Nomina, Otros
+    - Gasto: Ocio, Supermercado, Facturas, Otros
+- Se evita explicitamente combinaciones sin sentido (ejemplo: Ingreso + Ocio).
+
+### 18.2 Cambios tecnicos
+
+- Components/Frontend/MainWindow.xaml:
+    - cmbTipo ahora dispara SelectionChanged para refrescar categorias.
+    - cmbCategoria pasa a llenarse dinamicamente desde code-behind.
+- Components/Backend/MainWindow.xaml.cs:
+    - catalogos de categorias por tipo (ingreso/gasto).
+    - nuevo metodo ActualizarCategoriasPorTipo().
+    - nuevo metodo EsCategoriaValidaParaTipo(tipo, categoria).
+    - validacion defensiva en btnGuardarTransaccion_Click antes de insertar en BD.
+
+### 18.3 Estado de validacion
+
+- Sin errores de editor en los archivos modificados.
+- Validacion de compilacion por diagnostico de editor: sin errores globales.
+
+## 19) Avance Implementado - Coherencia en Filtros (2026-04-20)
+
+### 19.1 Mejora funcional aplicada
+
+- La barra de filtros de transacciones ahora mantiene coherencia entre tipo y categoria.
+- Si el filtro de tipo es Ingreso, solo se muestran categorias de ingreso.
+- Si el filtro de tipo es Gasto, solo se muestran categorias de gasto.
+- Si el filtro de tipo es Todos, se muestran todas las categorias disponibles.
+
+### 19.2 Cambios tecnicos
+
+- Components/Frontend/MainWindow.xaml:
+    - cmbFiltroTipo ahora usa SelectionChanged para refrescar categorias de filtro.
+    - cmbFiltroCategoria pasa a poblarse dinamicamente desde code-behind.
+- Components/Backend/MainWindow.xaml.cs:
+    - nuevo metodo ActualizarCategoriasFiltroPorTipo().
+    - nuevo handler cmbFiltroTipo_SelectionChanged.
+    - btnLimpiarFiltros_Click ajustado para reconstruir categorias antes de aplicar filtros.
+
+### 19.3 Validacion tecnica
+
+- dotnet build UNUM.sln correcto.
+- 0 errores y 0 advertencias.
+
+## 20) Avance Implementado - Persistencia de Filtros (2026-04-20)
+
+### 20.1 Mejora funcional aplicada
+
+- El estado de filtros de transacciones ahora se guarda y restaura automaticamente al abrir MainWindow.
+- Persistencia por usuario autenticado (UsuarioId), incluyendo:
+    - tipo
+    - periodo
+    - categoria
+    - fecha desde
+    - fecha hasta
+
+### 20.2 Cambios tecnicos
+
+- Components/Backend/MainWindow.xaml.cs:
+    - nuevos metodos:
+        - GuardarEstadoFiltros()
+        - RestaurarEstadoFiltros()
+        - ObtenerRutaEstadoFiltros()
+        - LeerEstadoFiltros(...)
+        - SeleccionarComboPorTexto(...)
+    - nuevo modelo interno EstadoFiltros para serializacion.
+    - persistencia JSON en LocalAppData/UNUM/filtros-mainwindow.json.
+    - control de restauracion con bandera \_restaurandoEstadoFiltros para evitar escrituras recursivas.
+
+### 20.3 Validacion tecnica
+
+- dotnet build UNUM.sln correcto tras cambios.
+- 0 errores y 0 advertencias.
+
+## 21) Avance Implementado - Chips de Filtros Activos (2026-04-20)
+
+### 21.1 Mejora funcional aplicada
+
+- Se anadio una visualizacion tipo "chips" con los filtros activos encima de la tabla de transacciones.
+- Los chips muestran en tiempo real:
+    - tipo (si no es "Todos")
+    - periodo (si no es "Historico")
+    - categoria (si no es "Todas")
+    - fechas desde/hasta cuando estan informadas
+- Si no hay filtros activos, se muestra el estado: "Sin filtros (historico completo)".
+
+### 21.2 Cambios tecnicos
+
+- Components/Frontend/MainWindow.xaml:
+    - nueva franja visual "Filtros activos" con WrapPanel (panelFiltrosActivos).
+    - reajuste de filas para insertar la zona de chips entre filtros y DataGrid.
+- Components/Backend/MainWindow.xaml.cs:
+    - nuevos metodos:
+        - ActualizarIndicadoresFiltrosActivos()
+        - CrearChip(...)
+    - llamada a refresco de chips dentro de AplicarFiltrosTransacciones().
+
+### 21.3 Validacion tecnica
+
+- dotnet build UNUM.sln correcto.
+- 0 errores y 0 advertencias.
+
+## 22) Avance Implementado - Contador de Resultados (2026-04-20)
+
+### 22.1 Mejora funcional aplicada
+
+- Se anadio un contador visual junto a los chips de filtros activos con formato:
+    - N de M transacciones
+- El valor se actualiza automaticamente al aplicar/limpiar filtros y al recargar historial.
+
+### 22.2 Cambios tecnicos
+
+- Components/Frontend/MainWindow.xaml:
+    - nuevo TextBlock txtResumenResultados en la cabecera de "Filtros activos".
+- Components/Backend/MainWindow.xaml.cs:
+    - ActualizarIndicadoresFiltrosActivos() ahora calcula:
+        - total = filas del DataTable base
+        - visibles = filas del DataView filtrado
+    - actualiza txtResumenResultados con ambos valores.
+
+### 22.3 Validacion tecnica
+
+- dotnet build UNUM.sln correcto.
+- 0 errores y 0 advertencias.
+
+## 23) Avance Implementado - Utilidades Reales de Productividad (2026-04-20)
+
+### 23.1 Mejora funcional aplicada
+
+- Se amplio el panel de filtros con utilidades de uso diario:
+    - busqueda libre por texto (descripcion, categoria o tipo)
+    - rango de importes (minimo y maximo)
+    - exportacion CSV de la vista filtrada actual
+
+### 23.2 Cambios de UI
+
+- Components/Frontend/MainWindow.xaml:
+    - barra de filtros en 2 filas para mejorar capacidad sin perder claridad.
+    - nuevos controles:
+        - txtFiltroTexto
+        - txtImporteMin
+        - txtImporteMax
+        - btnExportarCsv
+
+### 23.3 Cambios de logica
+
+- Components/Backend/MainWindow.xaml.cs:
+    - filtros nuevos integrados en AplicarFiltrosTransacciones():
+        - texto libre (LIKE sobre descripcion/categoria/tipo)
+        - importe minimo y maximo con validaciones
+    - soporte de parseo de decimales robusto por cultura:
+        - TryParseImporteFiltro(...)
+    - exportacion CSV:
+        - btnExportarCsv_Click(...)
+        - EscapeCsvValue(...)
+    - escape de texto para RowFilter:
+        - EscapeRowFilterLikeValue(...)
+    - persistencia de nuevos filtros en EstadoFiltros:
+        - TextoLibre
+        - ImporteMin
+        - ImporteMax
+
+### 23.4 Validacion tecnica
+
+- dotnet build UNUM.sln correcto tras integrar el paquete de utilidades.
+- 0 errores y 0 advertencias.
+
+## 24) Incidencia Resuelta - NullReference tras login exitoso (2026-04-20)
+
+### 24.1 Sintoma
+
+- El usuario autenticaba correctamente ("Login exitoso") y acto seguido aparecia:
+    - Object reference not set to an instance of an object.
+
+### 24.2 Causa probable
+
+- Durante la inicializacion de MainWindow, algunos SelectionChanged podian dispararse antes de que todos los controles de filtros estuvieran listos.
+- En ese estado, metodos de refresco de categorias/filtros podian tocar controles aun no inicializados.
+
+### 24.3 Correccion aplicada
+
+- Components/Backend/MainWindow.xaml.cs:
+    - guards defensivos en:
+        - ActualizarCategoriasPorTipo()
+        - ActualizarCategoriasFiltroPorTipo()
+        - RestaurarEstadoFiltros()
+    - si controles clave aun son null, se sale de forma segura.
+
+### 24.4 Estado
+
+- Diagnostico de editor sin errores.
+- Build con app abierta arrojo bloqueos de archivo (MSB3026) por proceso UNUM.exe en uso, no errores de codigo.
+
+### 24.5 Mejora de diagnostico aplicada
+
+- LoginWindow ahora separa:
+    - errores de autenticacion/BD
+    - errores al abrir MainWindow tras login exitoso
+- Si falla la apertura del panel principal, se muestra mensaje especifico:
+    - "Error al abrir el panel principal".
+
+## 25) Ajuste UX - Ventana y Filtros Clean (2026-04-20)
+
+### 25.1 Mejora visual aplicada
+
+- MainWindow ahora abre mas grande por defecto para evitar arrastre horizontal:
+    - Width: 1320
+    - Height: 820
+    - MinWidth: 1180
+    - MinHeight: 760
+
+### 25.2 Rediseño de barra de filtros
+
+- El layout de filtros se optimizo con una estructura mas limpia (2 filas en WrapPanel):
+    - fila 1: tipo, periodo, categoria, desde, hasta
+    - fila 2: buscar, min/max importe, aplicar, limpiar, exportar CSV
+- Se priorizo legibilidad y reduccion de densidad visual.
+
+### 25.3 Validacion tecnica
+
+- dotnet build UNUM.sln correcto tras los cambios.
+- 0 errores y 0 advertencias.
+
+## 26) Estado de Objetivos vs Gastos/Ingresos (2026-04-20)
+
+### 26.1 Lo que SI esta conectado
+
+- Objetivos y transacciones comparten el mismo usuario autenticado (UsuarioId).
+- Se pueden gestionar en la misma sesion/flujo de la app.
+
+### 26.2 Lo que NO esta conectado aun (a nivel de negocio)
+
+- No existe regla automatica que al registrar ingresos/gastos actualice AhorroActual de objetivos.
+- El progreso de objetivos se actualiza manualmente desde la ventana de objetivos.

@@ -1,20 +1,59 @@
 ﻿<Window x:Class="UNUM.RegisterWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="UNUM - Crear Cuenta" Height="300" Width="400" WindowStartupLocation="CenterScreen">
-    <Grid Margin="20">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="250">
-            <TextBlock Text="Crear nueva cuenta" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,20"/>
-            
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="UNUM - Crear Cuenta" Height="560" Width="640" MinHeight="520" MinWidth="600" Background="{DynamicResource MaterialDesignPaper}" WindowStartupLocation="CenterScreen">
+    <Grid Margin="24">
+        <Border Background="#FFF7F9FB" CornerRadius="10" Padding="24">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="380">
+            <TextBlock Text="Crear nueva cuenta" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,24"/>
+
+            <Border x:Name="brdMensajeRegistro"
+                    Background="#FFEAF6FF"
+                    BorderBrush="#FFB6DEFF"
+                    BorderThickness="1"
+                    CornerRadius="6"
+                    Padding="10,6"
+                    Margin="0,0,0,16"
+                    Visibility="Collapsed">
+                <TextBlock x:Name="txtMensajeRegistro"
+                           Foreground="#FF1E4D6B"
+                           TextWrapping="Wrap"/>
+            </Border>
+
             <TextBlock Text="Usuario:"/>
-            <TextBox x:Name="txtUsuarioRegistro" Margin="0,5,0,15" Height="25"/>
-            
+            <TextBox x:Name="txtUsuarioRegistro" Margin="0,6,0,4" Height="32" TextChanged="txtUsuarioRegistro_TextChanged"/>
+            <TextBlock x:Name="txtUsuarioRegistroHint"
+                       Margin="0,0,0,12"
+                       Foreground="#FF8A1F2A"
+                       FontSize="11"
+                       Visibility="Collapsed"/>
+
             <TextBlock Text="Contrasena:"/>
-            <PasswordBox x:Name="txtPasswordRegistro" Margin="0,5,0,20" Height="25"/>
-            
-            <Button x:Name="btnRegistrar" Content="Registrarse" Height="30" Click="btnRegistrar_Click" Background="#FF28A745" Foreground="White" FontWeight="Bold"/>
-            
-            <Button x:Name="btnVolver" Content="Volver al Inicio" Height="30" Margin="0,10,0,0" Click="btnVolver_Click" Background="Transparent" Foreground="#FF0078D7" BorderThickness="0"/>
-        </StackPanel>
+            <PasswordBox x:Name="txtPasswordRegistro" Margin="0,6,0,4" Height="32" PasswordChanged="txtPasswordRegistro_PasswordChanged"/>
+            <TextBlock x:Name="txtPasswordRegistroHint"
+                       Margin="0,0,0,8"
+                       Foreground="#FF8A1F2A"
+                       FontSize="11"
+                       Visibility="Collapsed"/>
+
+            <TextBlock Text="Confirmar contrasena:"/>
+            <PasswordBox x:Name="txtPasswordConfirmacion" Margin="0,6,0,4" Height="32" PasswordChanged="txtPasswordConfirmacion_PasswordChanged"/>
+            <TextBlock x:Name="txtPasswordConfirmacionHint"
+                       Margin="0,0,0,12"
+                       Foreground="#FF8A1F2A"
+                       FontSize="11"
+                       Visibility="Collapsed"/>
+
+            <TextBlock Text="La contraseña debe tener al menos 8 caracteres, 1 mayúscula, 1 minúscula y 1 número."
+                       Foreground="#FF5A6270"
+                       FontSize="11"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,14"/>
+
+            <Button x:Name="btnRegistrar" Content="Registrarse" Height="34" Click="btnRegistrar_Click" Background="#FF28A745" Foreground="White" FontWeight="Bold"/>
+
+            <Button x:Name="btnVolver" Content="Volver al Inicio" Height="32" Margin="0,12,0,0" Click="btnVolver_Click" Background="Transparent" Foreground="#FF0078D7" BorderThickness="0"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

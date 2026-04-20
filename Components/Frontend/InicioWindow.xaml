@@ -1,38 +1,46 @@
 <Window x:Class="UNUM.InicioWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="UNUM - Bienvenido"
-        Height="300"
-        Width="400"
-        WindowStartupLocation="CenterScreen">
-    <Grid Margin="20">
-        <StackPanel VerticalAlignment="Center"
-                HorizontalAlignment="Center"
-                Width="250">
-            <TextBlock Text="¡Bienvenido a UNUM!"
-                    FontSize="22"
-                    FontWeight="Bold"
-                    HorizontalAlignment="Center"
-                    Margin="0,0,0,30"/>
+                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                Title="UNUM - Bienvenido"
+                Height="420"
+                Width="540"
+                MinHeight="380"
+                MinWidth="500"
+                Background="{DynamicResource MaterialDesignPaper}"
+                WindowStartupLocation="CenterScreen">
+        <Grid Margin="24">
+                <Border Background="#FFF7F9FB" CornerRadius="10" Padding="28">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="320">
+                                <TextBlock Text="¡Bienvenido a UNUM!"
+                                                   FontSize="24"
+                                                   FontWeight="Bold"
+                                                   HorizontalAlignment="Center"
+                                                   Margin="0,0,0,28"/>
 
-            <Button x:Name="btnIrLogin"
-                    Content="Iniciar Sesión"
-                    Height="40"
-                    Margin="0,0,0,15"
-                    Click="btnIrLogin_Click"
-                    Background="#FF0078D7"
-                    Foreground="White"
-                    FontSize="14"
-                    FontWeight="Bold"/>
+                                <TextBlock Text="Gestiona tus transacciones y objetivos desde un solo lugar."
+                                                   TextAlignment="Center"
+                                                   Foreground="#FF5A6270"
+                                                   Margin="0,0,0,28"/>
 
-            <Button x:Name="btnIrRegistro"
-                    Content="Crear una Cuenta"
-                    Height="40"
-                    Click="btnIrRegistro_Click"
-                    Background="#FF28A745"
-                    Foreground="White"
-                    FontSize="14"
-                    FontWeight="Bold"/>
-        </StackPanel>
-    </Grid>
+                                <Button x:Name="btnIrLogin"
+                                                Content="Iniciar Sesión"
+                                                Height="42"
+                                                Margin="0,0,0,14"
+                                                Click="btnIrLogin_Click"
+                                                Background="#FF0078D7"
+                                                Foreground="White"
+                                                FontSize="14"
+                                                FontWeight="Bold"/>
+
+                                <Button x:Name="btnIrRegistro"
+                                                Content="Crear una Cuenta"
+                                                Height="42"
+                                                Click="btnIrRegistro_Click"
+                                                Background="#FF28A745"
+                                                Foreground="White"
+                                                FontSize="14"
+                                                FontWeight="Bold"/>
+                        </StackPanel>
+                </Border>
+        </Grid>
 </Window>
