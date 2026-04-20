@@ -1,11 +1,13 @@
 ﻿using MySql.Data.MySqlClient;
-using System;
 using System.Windows;
+using UNUM.Services;
 
 namespace UNUM
 {
     public partial class RegisterWindow : Window
     {
+        private readonly AuthService _authService = new();
+
         public RegisterWindow()
         {
             InitializeComponent();
@@ -18,50 +20,34 @@ namespace UNUM
 
             if (string.IsNullOrWhiteSpace(usuario) || string.IsNullOrWhiteSpace(password))
             {
-                MessageBox.Show("Por favor, rellena todos los campos.", "Validación", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Por favor, rellena todos los campos.", "Validacion", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            string connectionString = "Server=127.0.0.1; Port=3306; Database=unum; Uid=root; Pwd=admin123;";
-
-            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            try
             {
-                try
+                _authService.RegisterUser(usuario, password);
+
+                MessageBox.Show("Usuario registrado correctamente en la base de datos.", "Exito", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                InicioWindow inicio = new InicioWindow();
+                inicio.Show();
+                Close();
+            }
+            catch (MySqlException ex)
+            {
+                if (ex.Number == 1062)
                 {
-                    conn.Open();
-
-                    // Mantenemos tu consulta original con "Contraseña" (asegúrate de que en la BD se llame igual)
-                    string query = "INSERT INTO Usuarios (NombreUsuario, Contrasena) VALUES (@user, @pass)";
-
-                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@user", usuario);
-                        cmd.Parameters.AddWithValue("@pass", password);
-
-                        int filasAfectadas = cmd.ExecuteNonQuery();
-
-                        if (filasAfectadas > 0)
-                        {
-                            MessageBox.Show("Usuario registrado correctamente en la Base de Datos.", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
-                            
-                            // Redirigimos al inicio para que pueda hacer Login con su nueva cuenta
-                            InicioWindow inicio = new InicioWindow();
-                            inicio.Show();
-                            this.Close();
-                        }
-                    }
+                    MessageBox.Show("Ese nombre de usuario ya existe. Elige otro.", "Error de Integridad", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
-                catch (MySqlException ex)
+                else
                 {
-                    if (ex.Number == 1062) // Error MySQL para "Duplicate entry"
-                    {
-                        MessageBox.Show("Ese nombre de usuario ya existe. Elige otro.", "Error de Integridad", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                    else
-                    {
-                        MessageBox.Show("Error de base de datos:\n" + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
+                    MessageBox.Show("Error de base de datos:\n" + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error inesperado:\n" + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

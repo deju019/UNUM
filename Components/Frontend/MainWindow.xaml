@@ -19,6 +19,17 @@
                        FontSize="24"
                        FontWeight="Bold"
                        VerticalAlignment="Center"/>
+            <Button x:Name="btnObjetivos"
+                Content="Objetivos"
+                Width="100"
+                Height="30"
+                Margin="0,0,8,0"
+                HorizontalAlignment="Right"
+                Click="btnObjetivos_Click"
+                Background="#FF6C757D"
+                Foreground="White"
+                FontWeight="Bold"
+                DockPanel.Dock="Right"/>
             <Button x:Name="btnCerrarSesion"
                     Content="Cerrar Sesión"
                     Width="100"

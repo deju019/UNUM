@@ -1,8 +1,8 @@
 using System.Windows;
 using System;
-using MySql.Data.MySqlClient;
 using System.Windows.Controls;
 using System.Data;
+using UNUM.Services;
 
 namespace UNUM
 {
@@ -10,6 +10,7 @@ namespace UNUM
     {
         // Variable global privada para recordar quién es el usuario mientras la ventana esté abierta
         private int _usuarioId;
+        private readonly TransactionService _transactionService = new();
 
         // Modificamos el constructor para exigir el ID del usuario
         public MainWindow(int idUsuarioLogueado)
@@ -34,12 +35,30 @@ namespace UNUM
             this.Close();
         }
 
+        private void btnObjetivos_Click(object sender, RoutedEventArgs e)
+        {
+            var objetivosWindow = new ObjetivosWindow(_usuarioId)
+            {
+                Owner = this
+            };
+
+            objetivosWindow.ShowDialog();
+        }
+
         private void btnGuardarTransaccion_Click(object sender, RoutedEventArgs e)
         {
             // 1. Extracción de datos de la interfaz
-            string tipo = ((ComboBoxItem)cmbTipo.SelectedItem).Content.ToString();
-            string categoria = ((ComboBoxItem)cmbCategoria.SelectedItem).Content.ToString();
+            var tipoItem = cmbTipo.SelectedItem as ComboBoxItem;
+            var categoriaItem = cmbCategoria.SelectedItem as ComboBoxItem;
+            string tipo = tipoItem?.Content?.ToString() ?? string.Empty;
+            string categoria = categoriaItem?.Content?.ToString() ?? string.Empty;
             string descripcion = txtDescripcion.Text;
+
+            if (string.IsNullOrWhiteSpace(tipo) || string.IsNullOrWhiteSpace(categoria))
+            {
+                MessageBox.Show("Selecciona tipo y categoria para continuar.", "Validacion", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
             // 2. Control de Calidad (QA): Validar que el importe sea un número válido
             // Nota: Dependiendo del idioma de tu PC, los decimales se separan con '.' o ','
@@ -49,81 +68,32 @@ namespace UNUM
                 return;
             }
 
-            string connectionString = "Server=127.0.0.1; Port=3306; Database=UNUM; Uid=root; Pwd=admin123;";
-
-            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            try
             {
-                try
-                {
-                    conn.Open();
+                _transactionService.AddTransaction(_usuarioId, tipo, categoria, importe, DateTime.Now.Date, descripcion);
 
-                    // 3. Consulta SQL parametrizada. Pasamos el _usuarioId de la sesión activa
-                    string query = "INSERT INTO Transacciones (UsuarioId, Tipo, Categoria, Importe, FechaTransaccion, Descripcion) " +
-                                   "VALUES (@usuarioId, @tipo, @categoria, @importe, @fecha, @descripcion)";
+                MessageBox.Show("Transaccion registrada con exito.", "Operacion Completada", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@usuarioId", _usuarioId);
-                        cmd.Parameters.AddWithValue("@tipo", tipo);
-                        cmd.Parameters.AddWithValue("@categoria", categoria);
-                        cmd.Parameters.AddWithValue("@importe", importe);
-                        cmd.Parameters.AddWithValue("@fecha", DateTime.Now.Date); // Guardamos la fecha de hoy
-                        cmd.Parameters.AddWithValue("@descripcion", descripcion);
-
-                        int filasAfectadas = cmd.ExecuteNonQuery();
-
-                        if (filasAfectadas > 0)
-                        {
-                            MessageBox.Show("Transacción registrada con éxito.", "Operación Completada", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                            // 4. Limpiamos el formulario para el siguiente uso (Buena práctica de UX)
-                            txtImporte.Clear();
-                            txtDescripcion.Clear();
-
-                            CargarHistorial();
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Error al guardar la transacción:\n" + ex.Message, "Fallo Crítico", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                txtImporte.Clear();
+                txtDescripcion.Clear();
+                CargarHistorial();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al guardar la transaccion:\n" + ex.Message, "Fallo Critico", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void CargarHistorial()
         {
-            string connectionString = "Server=127.0.0.1; Port=3306; Database=UNUM; Uid=root; Pwd=admin123;";
-
-            using (MySqlConnection conn = new MySqlConnection(connectionString))
+            try
             {
-                try
-                {
-                    conn.Open();
-
-                    // Añadimos 'Id' a la consulta SQL
-                    string query = "SELECT Id, Tipo, Categoria, Importe, FechaTransaccion AS 'Fecha', Descripcion " +
-                                   "FROM Transacciones WHERE UsuarioId = @usuarioId ORDER BY FechaTransaccion DESC, Id DESC";
-
-                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@usuarioId", _usuarioId);
-
-                        // El DataAdapter es un puente que ejecuta la consulta y rellena un objeto DataTable automáticamente
-                        using (MySqlDataAdapter adapter = new MySqlDataAdapter(cmd))
-                        {
-                            DataTable dt = new DataTable();
-                            adapter.Fill(dt);
-
-                            // Data Binding: Le decimos al DataGrid visual que su origen de datos es nuestra tabla en memoria
-                            gridTransacciones.ItemsSource = dt.DefaultView;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Error al descargar el historial de transacciones:\n" + ex.Message, "Error de Lectura", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
+                DataTable dt = _transactionService.GetUserTransactions(_usuarioId);
+                gridTransacciones.ItemsSource = dt.DefaultView;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error al descargar el historial de transacciones:\n" + ex.Message, "Error de Lectura", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -145,35 +115,18 @@ namespace UNUM
 
             if (confirmacion == MessageBoxResult.Yes)
             {
-                string connectionString = "Server=127.0.0.1; Port=3306; Database=UNUM; Uid=root; Pwd=admin123;";
-
-                using (MySqlConnection conn = new MySqlConnection(connectionString))
+                try
                 {
-                    try
+                    bool deleted = _transactionService.DeleteTransaction(idTransaccion, _usuarioId);
+
+                    if (deleted)
                     {
-                        conn.Open();
-
-                        // 4. Sentencia DELETE segura
-                        string query = "DELETE FROM Transacciones WHERE Id = @idTransaccion AND UsuarioId = @usuarioId";
-
-                        using (MySqlCommand cmd = new MySqlCommand(query, conn))
-                        {
-                            cmd.Parameters.AddWithValue("@idTransaccion", idTransaccion);
-                            cmd.Parameters.AddWithValue("@usuarioId", _usuarioId);
-
-                            int filasAfectadas = cmd.ExecuteNonQuery();
-
-                            if (filasAfectadas > 0)
-                            {
-                                // 5. Refrescamos la tabla para que el elemento desaparezca visualmente
-                                CargarHistorial();
-                            }
-                        }
+                        CargarHistorial();
                     }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("Error al intentar eliminar la transacción:\n" + ex.Message, "Fallo Crítico", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error al intentar eliminar la transaccion:\n" + ex.Message, "Fallo Critico", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
