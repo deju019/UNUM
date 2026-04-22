@@ -69,12 +69,12 @@ namespace UNUM
 
             try
             {
-                _authService.RegisterUser(usuario, password);
+                int usuarioId = _authService.RegisterUser(usuario, password);
 
-                ShowMessage("Usuario registrado correctamente. Redirigiendo al inicio...", false);
+                ShowMessage("Usuario registrado correctamente. Iniciando sesion...", false);
 
-                InicioWindow inicio = new InicioWindow();
-                inicio.Show();
+                MainWindow ventanaPrincipal = new MainWindow(usuarioId);
+                ventanaPrincipal.Show();
                 Close();
             }
             catch (MySqlException ex)

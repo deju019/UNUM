@@ -8,8 +8,10 @@ using System.Linq;
 using System.IO;
 using System.Text.Json;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Globalization;
 using Microsoft.Win32;
+using System.Threading.Tasks;
 
 namespace UNUM
 {
@@ -20,7 +22,10 @@ namespace UNUM
         private readonly TransactionService _transactionService = new();
         private readonly ObjectiveService _objectiveService = new();
         private DataTable _transacciones = new();
+        private readonly Dictionary<string, decimal> _presupuestosCategorias = new(StringComparer.OrdinalIgnoreCase);
         private bool _restaurandoEstadoFiltros;
+        private OnboardingGuideWindow? _guiaActiva = null;
+        private readonly Thickness _grosorOriginalBorder = new(1);
         private static readonly string[] CategoriasGasto = { "Ocio", "Supermercado", "Facturas", "Otros" };
         private static readonly string[] CategoriasIngreso = { "Nómina", "Otros" };
 
@@ -35,12 +40,17 @@ namespace UNUM
             ActualizarCategoriasPorTipo();
             ActualizarCategoriasFiltroPorTipo();
             RestaurarEstadoFiltros();
+            InicializarPresupuestosUi();
+            CargarPresupuestosCategorias();
+            Loaded += MainWindow_Loaded;
+        }
 
-            // Cargamos el historial de transacciones del usuario al abrir la ventana
-            CargarHistorial();
-
-            // Cargamos los objetivos del usuario
-            CargarObjetivos();
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            await MostrarOnboardingAsync();
+            await CargarHistorialAsync();
+            await CargarObjetivosAsync();
+            IniciarAnimacionesIniciales();
         }
 
         private void btnCerrarSesion_Click(object sender, RoutedEventArgs e)
@@ -99,7 +109,13 @@ namespace UNUM
 
                 txtImporte.Clear();
                 txtDescripcion.Clear();
-                CargarHistorial();
+                _ = CargarHistorialAsync();
+
+                // Notificar al guía si está activo
+                if (_guiaActiva != null)
+                {
+                    _guiaActiva.PasoActual = TutorialPaso.MostrarHistorial;
+                }
             }
             catch (Exception ex)
             {
@@ -107,16 +123,22 @@ namespace UNUM
             }
         }
 
-        private void CargarHistorial()
+        private async Task CargarHistorialAsync()
         {
+            SetEstadoCargaTransacciones(true, "Cargando transacciones...");
             try
             {
-                _transacciones = _transactionService.GetUserTransactions(_usuarioId);
+                _transacciones = await Task.Run(() => _transactionService.GetUserTransactions(_usuarioId));
                 AplicarFiltrosTransacciones();
+                ActualizarPanelPresupuestos();
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error al descargar el historial de transacciones:\n" + ex.Message, "Error de Lectura", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                SetEstadoCargaTransacciones(false);
             }
         }
 
@@ -127,6 +149,7 @@ namespace UNUM
                 gridTransacciones.ItemsSource = _transacciones.DefaultView;
                 CalcularResumenFinanciero(_transacciones);
                 ActualizarIndicadoresFiltrosActivos();
+                ActualizarEstadoVacioTransacciones();
                 return;
             }
 
@@ -214,8 +237,10 @@ namespace UNUM
             vista.RowFilter = string.Join(" AND ", filtros);
 
             gridTransacciones.ItemsSource = vista;
-            CalcularResumenFinanciero(vista.ToTable());
+            // El resumen/saldo representa el estado global de la cuenta, no la vista filtrada.
+            CalcularResumenFinanciero(_transacciones);
             ActualizarIndicadoresFiltrosActivos();
+            ActualizarEstadoVacioTransacciones();
 
             if (!_restaurandoEstadoFiltros)
             {
@@ -284,7 +309,13 @@ namespace UNUM
 
                     if (deleted)
                     {
-                        CargarHistorial();
+                        _ = CargarHistorialAsync();
+
+                        // Completar el guía si está activo
+                        if (_guiaActiva != null)
+                        {
+                            _guiaActiva.AvanzarPaso(); // Va a PedirBorrar -> Completado
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -296,8 +327,7 @@ namespace UNUM
 
         private void btnRefrescar_Click(object sender, RoutedEventArgs e)
         {
-            // Llamamos a la función que ya construimos para descargar los datos de MySQL
-            CargarHistorial();
+            _ = CargarHistorialAsync();
         }
 
         private void cmbTipo_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -307,7 +337,9 @@ namespace UNUM
 
         private void btnAplicarFiltros_Click(object sender, RoutedEventArgs e)
         {
+            SetEstadoCargaTransacciones(true, "Aplicando filtros...");
             AplicarFiltrosTransacciones();
+            SetEstadoCargaTransacciones(false);
         }
 
         private void cmbFiltroTipo_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -325,7 +357,9 @@ namespace UNUM
             txtImporteMin.Clear();
             txtImporteMax.Clear();
             ActualizarCategoriasFiltroPorTipo();
+            SetEstadoCargaTransacciones(true, "Limpiando filtros...");
             AplicarFiltrosTransacciones();
+            SetEstadoCargaTransacciones(false);
         }
 
         private void btnExportarCsv_Click(object sender, RoutedEventArgs e)
@@ -444,6 +478,198 @@ namespace UNUM
             }
 
             cmbFiltroCategoria.SelectedIndex = indexSeleccionado;
+        }
+
+        private void InicializarPresupuestosUi()
+        {
+            if (cmbPresupuestoCategoria is null)
+            {
+                return;
+            }
+
+            cmbPresupuestoCategoria.Items.Clear();
+            foreach (var categoria in CategoriasGasto)
+            {
+                cmbPresupuestoCategoria.Items.Add(new ComboBoxItem { Content = categoria });
+            }
+
+            cmbPresupuestoCategoria.SelectedIndex = cmbPresupuestoCategoria.Items.Count > 0 ? 0 : -1;
+        }
+
+        private void btnGuardarPresupuesto_Click(object sender, RoutedEventArgs e)
+        {
+            var categoria = (cmbPresupuestoCategoria.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(categoria))
+            {
+                MessageBox.Show("Selecciona una categoria para guardar el presupuesto.", "Presupuestos", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!TryParseImporteFiltro(txtPresupuestoLimite.Text, out var limite) || limite <= 0)
+            {
+                MessageBox.Show("Introduce un limite mensual valido mayor que cero.", "Presupuestos", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            _presupuestosCategorias[categoria] = limite;
+            GuardarPresupuestosCategorias();
+            ActualizarPanelPresupuestos();
+            txtPresupuestoLimite.Clear();
+        }
+
+        private void btnReiniciarPresupuestos_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("¿Quieres borrar todos los presupuestos de categorias?", "Presupuestos", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            _presupuestosCategorias.Clear();
+            GuardarPresupuestosCategorias();
+            ActualizarPanelPresupuestos();
+        }
+
+        private void ActualizarPanelPresupuestos()
+        {
+            if (itemsPresupuestos is null)
+            {
+                return;
+            }
+
+            var inicioMes = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            var finMes = inicioMes.AddMonths(1);
+            var gastoPorCategoria = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (DataRow row in _transacciones.Rows)
+            {
+                if (row["Tipo"] == DBNull.Value || row["Categoria"] == DBNull.Value || row["Importe"] == DBNull.Value || row["Fecha"] == DBNull.Value)
+                {
+                    continue;
+                }
+
+                var tipo = row["Tipo"]?.ToString() ?? string.Empty;
+                if (!string.Equals(tipo, "Gasto", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var fecha = Convert.ToDateTime(row["Fecha"]);
+                if (fecha < inicioMes || fecha >= finMes)
+                {
+                    continue;
+                }
+
+                var categoria = row["Categoria"]?.ToString() ?? "Otros";
+                var importe = Convert.ToDecimal(row["Importe"]);
+
+                gastoPorCategoria.TryGetValue(categoria, out var acumulado);
+                gastoPorCategoria[categoria] = acumulado + importe;
+            }
+
+            var items = new List<PresupuestoCategoriaView>();
+            foreach (var presupuesto in _presupuestosCategorias.OrderBy(x => x.Key))
+            {
+                gastoPorCategoria.TryGetValue(presupuesto.Key, out var gastado);
+                var porcentaje = presupuesto.Value > 0
+                    ? Math.Min(100m, decimal.Round((gastado / presupuesto.Value) * 100m, 1))
+                    : 0m;
+
+                var color = porcentaje >= 100m
+                    ? new SolidColorBrush(Color.FromRgb(220, 53, 69))
+                    : porcentaje >= 80m
+                        ? new SolidColorBrush(Color.FromRgb(255, 193, 7))
+                        : new SolidColorBrush(Color.FromRgb(40, 167, 69));
+
+                items.Add(new PresupuestoCategoriaView
+                {
+                    Categoria = presupuesto.Key,
+                    Resumen = $"{gastado:0.00} € / {presupuesto.Value:0.00} €",
+                    Porcentaje = (double)porcentaje,
+                    ColorProgreso = color
+                });
+            }
+
+            if (items.Count == 0)
+            {
+                items.Add(new PresupuestoCategoriaView
+                {
+                    Categoria = "Sin presupuestos",
+                    Resumen = "Define un límite mensual para empezar.",
+                    Porcentaje = 0,
+                    ColorProgreso = new SolidColorBrush(Color.FromRgb(108, 117, 125))
+                });
+            }
+
+            itemsPresupuestos.ItemsSource = items;
+        }
+
+        private void CargarPresupuestosCategorias()
+        {
+            try
+            {
+                var ruta = ObtenerRutaPresupuestosCategorias();
+                if (!File.Exists(ruta))
+                {
+                    return;
+                }
+
+                var json = File.ReadAllText(ruta);
+                var mapa = JsonSerializer.Deserialize<Dictionary<int, Dictionary<string, decimal>>>(json)
+                           ?? new Dictionary<int, Dictionary<string, decimal>>();
+
+                _presupuestosCategorias.Clear();
+                if (mapa.TryGetValue(_usuarioId, out var presupuestosUsuario) && presupuestosUsuario is not null)
+                {
+                    foreach (var kv in presupuestosUsuario)
+                    {
+                        _presupuestosCategorias[kv.Key] = kv.Value;
+                    }
+                }
+            }
+            catch
+            {
+                // Fallo silencioso para no bloquear uso normal.
+            }
+        }
+
+        private void GuardarPresupuestosCategorias()
+        {
+            try
+            {
+                var ruta = ObtenerRutaPresupuestosCategorias();
+                var carpeta = Path.GetDirectoryName(ruta);
+                if (!string.IsNullOrWhiteSpace(carpeta))
+                {
+                    Directory.CreateDirectory(carpeta);
+                }
+
+                Dictionary<int, Dictionary<string, decimal>> mapa;
+                if (File.Exists(ruta))
+                {
+                    var jsonActual = File.ReadAllText(ruta);
+                    mapa = JsonSerializer.Deserialize<Dictionary<int, Dictionary<string, decimal>>>(jsonActual)
+                           ?? new Dictionary<int, Dictionary<string, decimal>>();
+                }
+                else
+                {
+                    mapa = new Dictionary<int, Dictionary<string, decimal>>();
+                }
+
+                mapa[_usuarioId] = _presupuestosCategorias.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
+
+                var json = JsonSerializer.Serialize(mapa, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(ruta, json);
+            }
+            catch
+            {
+                // Fallo silencioso para no bloquear uso normal.
+            }
+        }
+
+        private static string ObtenerRutaPresupuestosCategorias()
+        {
+            var carpeta = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UNUM");
+            return Path.Combine(carpeta, "presupuestos-mainwindow.json");
         }
 
         private void ActualizarIndicadoresFiltrosActivos()
@@ -641,6 +867,338 @@ namespace UNUM
             combo.SelectedIndex = indicePorDefecto;
         }
 
+        // ==========================================
+        // SISTEMA DE ONBOARDING (PRIMERA VEZ)
+        // ==========================================
+        // SISTEMA DE ONBOARDING (PRIMERA VEZ)
+        // ==========================================
+        private Task MostrarOnboardingAsync()
+        {
+            try
+            {
+                if (!DebeMostrarOnboarding())
+                {
+                    return Task.CompletedTask;
+                }
+
+                var onboardingWindow = new OnboardingWindow
+                {
+                    Owner = this
+                };
+
+                onboardingWindow.ShowDialog();
+
+                // Si no marcó "no volver a mostrar", inicia el guía interactivo
+                if (onboardingWindow.NoMostrarAlInicio != true)
+                {
+                    IniciarGuiaInteractiva();
+                }
+                else
+                {
+                    GuardarEstadoOnboarding();
+                }
+            }
+            catch
+            {
+                // Fallo silencioso: el onboarding no debe romper el uso de la app
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private void IniciarGuiaInteractiva()
+        {
+            try
+            {
+                _guiaActiva = new OnboardingGuideWindow
+                {
+                    Owner = this
+                };
+                _guiaActiva.Closed += (s, e) =>
+                {
+                    RestaurarResaltadoTutorial();
+                    _guiaActiva = null;
+                };
+                _guiaActiva.PasoCambiado += paso => ActualizarResaltadoTutorial(paso);
+                _guiaActiva.Show();
+                _guiaActiva.PasoActual = TutorialPaso.ExplicarRegistro;
+                GuardarEstadoOnboarding();
+            }
+            catch
+            {
+                // Fallo silencioso
+            }
+        }
+
+        private void ActualizarResaltadoTutorial(TutorialPaso paso)
+        {
+            RestaurarResaltadoTutorial();
+
+            if (paso == TutorialPaso.Completado)
+            {
+                return;
+            }
+
+            AtenuarInterfazTutorial();
+
+            switch (paso)
+            {
+                case TutorialPaso.ExplicarRegistro:
+                case TutorialPaso.EsperarAñadir:
+                    ResaltarBorder(borderRegistroTransaccion);
+                    ResaltarControl(btnGuardarTransaccion);
+                    RestaurarOpacidad(panelTransacciones);
+                    DesplazarA(borderRegistroTransaccion);
+                    break;
+                case TutorialPaso.MostrarHistorial:
+                    RestaurarOpacidad(panelTransacciones);
+                    ResaltarControl(gridTransacciones);
+                    DesplazarA(panelHistorialTransacciones);
+                    break;
+                case TutorialPaso.ExplicarAcciones:
+                    RestaurarOpacidad(panelTransacciones);
+                    ResaltarControl(btnExportarCsv);
+                    ResaltarControl(btnBorrarTransaccion);
+                    DesplazarA(panelAccionesRapidas);
+                    break;
+                case TutorialPaso.PedirBorrar:
+                    RestaurarOpacidad(panelTransacciones);
+                    ResaltarControl(btnBorrarTransaccion);
+                    DesplazarA(panelAccionesRapidas);
+                    break;
+            }
+
+            PosicionarMensajeTutorial(paso);
+        }
+
+        private void PosicionarMensajeTutorial(TutorialPaso paso)
+        {
+            if (_guiaActiva == null)
+            {
+                return;
+            }
+
+            FrameworkElement target = paso is TutorialPaso.ExplicarRegistro or TutorialPaso.EsperarAñadir
+                ? borderRegistroTransaccion
+                : panelHistorialTransacciones;
+
+            Dispatcher.InvokeAsync(() =>
+            {
+                var originPixels = target.PointToScreen(new System.Windows.Point(0, 0));
+                var source = PresentationSource.FromVisual(this);
+                if (source?.CompositionTarget == null)
+                {
+                    return;
+                }
+
+                var transform = source.CompositionTarget.TransformFromDevice;
+                var origin = transform.Transform(originPixels);
+
+                var tooltipWidth = _guiaActiva.ActualWidth > 0 ? _guiaActiva.ActualWidth : _guiaActiva.Width;
+                var tooltipHeight = _guiaActiva.ActualHeight > 0 ? _guiaActiva.ActualHeight : _guiaActiva.Height;
+
+                var left = origin.X + 16;
+                var top = paso is TutorialPaso.ExplicarRegistro or TutorialPaso.EsperarAñadir
+                    ? origin.Y + target.ActualHeight + 12
+                    : origin.Y - tooltipHeight - 12;
+
+                var workArea = SystemParameters.WorkArea;
+                if (left + tooltipWidth > workArea.Right)
+                {
+                    left = workArea.Right - tooltipWidth - 12;
+                }
+
+                if (left < workArea.Left)
+                {
+                    left = workArea.Left + 12;
+                }
+
+                if (top + tooltipHeight > workArea.Bottom)
+                {
+                    top = workArea.Bottom - tooltipHeight - 12;
+                }
+
+                if (top < workArea.Top)
+                {
+                    top = workArea.Top + 12;
+                }
+
+                _guiaActiva.Left = left;
+                _guiaActiva.Top = top;
+            });
+        }
+
+        private void RestaurarResaltadoTutorial()
+        {
+            RestaurarOpacidad(panelSidebar);
+            RestaurarOpacidad(panelTransacciones);
+            RestaurarOpacidad(panelSimulador);
+            RestaurarBorder(borderRegistroTransaccion, "#FFF0F0F0", 1);
+            RestaurarControl(btnGuardarTransaccion);
+            RestaurarControl(gridTransacciones);
+            RestaurarControl(btnExportarCsv);
+            RestaurarControl(btnBorrarTransaccion);
+            RestaurarControl(btnNuevoObjetivo);
+            RestaurarControl(btnBorrarObjetivo);
+        }
+
+        private void AtenuarInterfazTutorial()
+        {
+            panelSidebar.Opacity = 0.25;
+            panelTransacciones.Opacity = 0.25;
+            panelSimulador.Opacity = 0.25;
+        }
+
+        private static void RestaurarOpacidad(UIElement elemento)
+        {
+            elemento.Opacity = 1.0;
+        }
+
+        private static void ResaltarBorder(Border border)
+        {
+            border.BorderBrush = new SolidColorBrush(Color.FromRgb(255, 183, 77));
+            border.BorderThickness = new Thickness(3);
+        }
+
+        private static void RestaurarBorder(Border border, string colorHex, double grosor)
+        {
+            var color = (Color)ColorConverter.ConvertFromString(colorHex)!;
+            border.BorderBrush = new SolidColorBrush(color);
+            border.BorderThickness = new Thickness(grosor);
+        }
+
+        private static void ResaltarControl(Control control)
+        {
+            control.BorderBrush = new SolidColorBrush(Color.FromRgb(255, 183, 77));
+            control.BorderThickness = new Thickness(3);
+            control.Background = new SolidColorBrush(Color.FromArgb(35, 255, 183, 77));
+        }
+
+        private void RestaurarControl(Control control)
+        {
+            if (control == btnGuardarTransaccion)
+            {
+                control.BorderBrush = null;
+                control.BorderThickness = new Thickness(0);
+                control.Background = new SolidColorBrush(Color.FromRgb(40, 167, 69));
+                return;
+            }
+
+            if (control == btnExportarCsv)
+            {
+                control.BorderBrush = null;
+                control.BorderThickness = new Thickness(0);
+                control.Background = new SolidColorBrush(Color.FromRgb(25, 135, 84));
+                return;
+            }
+
+            if (control == btnBorrarTransaccion)
+            {
+                control.BorderBrush = null;
+                control.BorderThickness = new Thickness(0);
+                control.Background = new SolidColorBrush(Color.FromRgb(220, 53, 69));
+                return;
+            }
+
+            if (control == btnNuevoObjetivo)
+            {
+                control.BorderBrush = null;
+                control.BorderThickness = new Thickness(0);
+                control.Background = new SolidColorBrush(Color.FromRgb(111, 66, 193));
+                return;
+            }
+
+            if (control == btnBorrarObjetivo)
+            {
+                control.BorderBrush = null;
+                control.BorderThickness = new Thickness(0);
+                control.Background = new SolidColorBrush(Color.FromRgb(220, 53, 69));
+                return;
+            }
+
+            if (control == gridTransacciones)
+            {
+                control.BorderBrush = null;
+                control.BorderThickness = new Thickness(0);
+                control.Background = Brushes.White;
+            }
+
+            if (control == btnGuardarTransaccion)
+            {
+                control.Background = new SolidColorBrush(Color.FromRgb(40, 167, 69));
+            }
+        }
+
+        private void DesplazarA(FrameworkElement elemento)
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                elemento.BringIntoView();
+                elemento.Focus();
+            });
+        }
+
+        private bool DebeMostrarOnboarding()
+        {
+            try
+            {
+                var ruta = ObtenerRutaEstadoOnboarding();
+                var estado = LeerEstadoOnboarding(ruta);
+                return !estado.TryGetValue(_usuarioId, out var visto) || !visto;
+            }
+            catch
+            {
+                return true; // Si hay error, mostramos onboarding para no dejar sin guía
+            }
+        }
+
+        private void GuardarEstadoOnboarding()
+        {
+            try
+            {
+                var ruta = ObtenerRutaEstadoOnboarding();
+                var carpeta = Path.GetDirectoryName(ruta);
+                if (!string.IsNullOrEmpty(carpeta))
+                {
+                    Directory.CreateDirectory(carpeta);
+                }
+
+                var estado = LeerEstadoOnboarding(ruta);
+                estado[_usuarioId] = true;
+                var json = JsonSerializer.Serialize(estado, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(ruta, json);
+            }
+            catch
+            {
+                // Fallo silencioso
+            }
+        }
+
+        private static string ObtenerRutaEstadoOnboarding()
+        {
+            var carpeta = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UNUM");
+            return Path.Combine(carpeta, "onboarding-mainwindow.json");
+        }
+
+        private static Dictionary<int, bool> LeerEstadoOnboarding(string ruta)
+        {
+            if (!File.Exists(ruta))
+            {
+                return new Dictionary<int, bool>();
+            }
+
+            var json = File.ReadAllText(ruta);
+            return JsonSerializer.Deserialize<Dictionary<int, bool>>(json) ?? new Dictionary<int, bool>();
+        }
+
+        private sealed class PresupuestoCategoriaView
+        {
+            public string Categoria { get; set; } = string.Empty;
+            public string Resumen { get; set; } = string.Empty;
+            public double Porcentaje { get; set; }
+            public Brush ColorProgreso { get; set; } = Brushes.Gray;
+        }
+
         private sealed class EstadoFiltros
         {
             public string Tipo { get; set; } = "Todos";
@@ -688,8 +1246,7 @@ namespace UNUM
         private void btnMenuTransacciones_Click(object sender, RoutedEventArgs e)
         {
             // Mostramos Transacciones, Ocultamos Simulador
-            panelTransacciones.Visibility = Visibility.Visible;
-            panelSimulador.Visibility = Visibility.Collapsed;
+            AnimarCambioPanel(panelSimulador, panelTransacciones, true);
 
             // Feedback visual en el menú (Pintamos el botón activo)
             btnMenuTransacciones.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(52, 73, 94)); // #34495E
@@ -699,24 +1256,120 @@ namespace UNUM
         private void btnMenuSimulador_Click(object sender, RoutedEventArgs e)
         {
             // Mostramos Simulador, Ocultamos Transacciones
-            panelSimulador.Visibility = Visibility.Visible;
-            panelTransacciones.Visibility = Visibility.Collapsed;
+            AnimarCambioPanel(panelTransacciones, panelSimulador, false);
 
             // Feedback visual en el menú
             btnMenuSimulador.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(52, 73, 94)); // #34495E
             btnMenuTransacciones.Background = System.Windows.Media.Brushes.Transparent;
         }
 
+        private void IniciarAnimacionesIniciales()
+        {
+            AnimarEntradaElemento(borderRegistroTransaccion, 0);
+            AnimarEntradaElemento(borderFiltrosBusqueda, 90);
+            AnimarEntradaElemento(panelHistorialTransacciones, 180);
+            AnimarEntradaElemento(panelAccionesRapidas, 260);
+        }
+
+        private static void AnimarEntradaElemento(UIElement elemento, int delayMs)
+        {
+            if (elemento is not FrameworkElement framework)
+            {
+                return;
+            }
+
+            framework.Opacity = 0;
+            framework.RenderTransform = new TranslateTransform(0, 14);
+
+            var storyboard = new Storyboard();
+
+            var fade = new DoubleAnimation
+            {
+                From = 0,
+                To = 1,
+                Duration = TimeSpan.FromMilliseconds(320),
+                BeginTime = TimeSpan.FromMilliseconds(delayMs),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            var slide = new DoubleAnimation
+            {
+                From = 14,
+                To = 0,
+                Duration = TimeSpan.FromMilliseconds(320),
+                BeginTime = TimeSpan.FromMilliseconds(delayMs),
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            Storyboard.SetTarget(fade, framework);
+            Storyboard.SetTargetProperty(fade, new PropertyPath(UIElement.OpacityProperty));
+            Storyboard.SetTarget(slide, framework);
+            Storyboard.SetTargetProperty(slide, new PropertyPath("(UIElement.RenderTransform).(TranslateTransform.Y)"));
+
+            storyboard.Children.Add(fade);
+            storyboard.Children.Add(slide);
+            storyboard.Begin();
+        }
+
+        private static void AnimarCambioPanel(Grid panelOcultar, Grid panelMostrar, bool desdeIzquierda)
+        {
+            if (panelOcultar == panelMostrar)
+            {
+                return;
+            }
+
+            panelMostrar.Visibility = Visibility.Visible;
+            panelMostrar.Opacity = 0;
+            panelMostrar.RenderTransform = new TranslateTransform(desdeIzquierda ? -24 : 24, 0);
+
+            if (panelOcultar.Visibility == Visibility.Visible)
+            {
+                panelOcultar.RenderTransform = new TranslateTransform(0, 0);
+
+                var fadeOut = new DoubleAnimation(1, 0, TimeSpan.FromMilliseconds(180))
+                {
+                    EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn }
+                };
+
+                fadeOut.Completed += (_, _) =>
+                {
+                    panelOcultar.Visibility = Visibility.Collapsed;
+                    panelOcultar.Opacity = 1;
+                    panelOcultar.RenderTransform = new TranslateTransform(0, 0);
+                };
+
+                panelOcultar.BeginAnimation(UIElement.OpacityProperty, fadeOut);
+            }
+            else
+            {
+                panelOcultar.Visibility = Visibility.Collapsed;
+            }
+
+            var fadeIn = new DoubleAnimation(0, 1, TimeSpan.FromMilliseconds(220))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            var slideIn = new DoubleAnimation(desdeIzquierda ? -24 : 24, 0, TimeSpan.FromMilliseconds(220))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+            };
+
+            panelMostrar.BeginAnimation(UIElement.OpacityProperty, fadeIn);
+            (panelMostrar.RenderTransform as TranslateTransform)?.BeginAnimation(TranslateTransform.XProperty, slideIn);
+        }
+
 
         // ==========================================
         // SISTEMA MULTI-OBJETIVO (CRUD y MODALES)
         // ==========================================
-        private void CargarObjetivos()
+        private async Task CargarObjetivosAsync()
         {
             try
             {
-                var dt = _objectiveService.GetObjectives(_usuarioId);
+                var dt = await Task.Run(() => _objectiveService.GetObjectives(_usuarioId));
                 gridObjetivos.ItemsSource = dt.DefaultView;
+                panelEstadoVacioObjetivos.Visibility = dt.Rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
             }
             catch (Exception ex)
             {
@@ -736,7 +1389,7 @@ namespace UNUM
             if (modal.ShowDialog() == true)
             {
                 // Si devuelve true, es que se guardó bien. Refrescamos la tabla.
-                CargarObjetivos();
+                _ = CargarObjetivosAsync();
             }
         }
 
@@ -759,13 +1412,35 @@ namespace UNUM
                 bool deleted = _objectiveService.DeleteObjective(idObjeti, _usuarioId);
                 if (deleted)
                 {
-                    CargarObjetivos();
+                    _ = CargarObjetivosAsync();
                 }
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error al borrar objetivo: " + ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private void SetEstadoCargaTransacciones(bool activo, string mensaje = "Cargando transacciones...")
+        {
+            if (panelCargaTransacciones is null || txtEstadoCargaTransacciones is null)
+            {
+                return;
+            }
+
+            txtEstadoCargaTransacciones.Text = mensaje;
+            panelCargaTransacciones.Visibility = activo ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void ActualizarEstadoVacioTransacciones()
+        {
+            if (panelEstadoVacioTransacciones is null)
+            {
+                return;
+            }
+
+            var visibles = (gridTransacciones.ItemsSource as DataView)?.Count ?? _transacciones.Rows.Count;
+            panelEstadoVacioTransacciones.Visibility = visibles == 0 ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 }

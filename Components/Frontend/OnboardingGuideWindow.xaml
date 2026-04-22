@@ -1,0 +1,62 @@
+<Window x:Class="UNUM.OnboardingGuideWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Asistente de UNUM"
+        Height="200"
+        Width="380"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        Topmost="True"
+        ResizeMode="NoResize">
+    <Border Background="White"
+            BorderBrush="#FF2E86C1"
+            BorderThickness="2"
+            CornerRadius="10"
+            Padding="16">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                <TextBlock Text="👉 Paso " FontSize="14" FontWeight="Bold" Foreground="#2C3E50"/>
+                <TextBlock x:Name="txtPaso" Text="1/5" FontSize="14" FontWeight="Bold" Foreground="#FF2E86C1"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="1"
+                       x:Name="txtGuiaTexto"
+                       Text="Bienvenido al tutorial interactivo."
+                       FontSize="13"
+                       Foreground="#2C3E50"
+                       TextWrapping="Wrap"
+                       LineHeight="18"/>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+                <Button x:Name="btnSaltar"
+                        Content="Saltar"
+                        Width="80"
+                        Height="30"
+                        Background="#FFE8EEF5"
+                        Foreground="#7A8A99"
+                        BorderThickness="1"
+                        BorderBrush="#FFD1D9E3"
+                        Click="btnSaltar_Click"
+                        Margin="0,0,8,0"/>
+
+                <Button x:Name="btnSiguiente"
+                        Content="Siguiente →"
+                        Width="100"
+                        Height="30"
+                        Background="#FF2E86C1"
+                        Foreground="White"
+                        FontWeight="Bold"
+                        BorderThickness="0"
+                        Click="btnSiguiente_Click"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
