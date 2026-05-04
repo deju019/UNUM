@@ -14,7 +14,7 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Border Grid.Column="0"
+        <Border x:Name="panelSidebar" Grid.Column="0"
                 Background="#2C3E50">
             <DockPanel LastChildFill="True">
                 <Button x:Name="btnCerrarSesion"
@@ -24,6 +24,7 @@
                         Foreground="White"
                         FontWeight="Bold"
                         BorderThickness="0"
+                    ToolTip="Cierra la sesión actual y vuelve a la pantalla de inicio"
                         Margin="20,0,20,20"
                         Click="btnCerrarSesion_Click"
                         DockPanel.Dock="Bottom"/>
@@ -44,6 +45,7 @@
                         FontSize="14"
                         FontWeight="Bold"
                         BorderThickness="0"
+                    ToolTip="Ir al panel de transacciones y filtros"
                         Margin="0,0,0,10"
                         Click="btnMenuTransacciones_Click"/>
 
@@ -55,6 +57,7 @@
                         FontSize="14"
                         FontWeight="Bold"
                         BorderThickness="0"
+                    ToolTip="Ir al panel de objetivos de ahorro"
                         Margin="0,0,0,40"
                         Click="btnMenuSimulador_Click"/>
 
@@ -81,7 +84,7 @@
                         </DockPanel>
         </Border>
 
-                <ScrollViewer Grid.Column="1"
+                <ScrollViewer x:Name="mainScrollViewer" Grid.Column="1"
                                             Margin="16"
                                             VerticalScrollBarVisibility="Auto"
                                             HorizontalScrollBarVisibility="Disabled">
@@ -99,7 +102,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Border Grid.Row="0"
+                <Border x:Name="borderRegistroTransaccion" Grid.Row="0"
                         Background="#FFF0F0F0"
                         CornerRadius="5"
                         Padding="15"
@@ -126,6 +129,7 @@
                                   Grid.Column="0"
                                   Margin="0,20,10,0"
                                   Height="25"
+                                  ToolTip="Selecciona si quieres registrar un ingreso o un gasto"
                                   SelectionChanged="cmbTipo_SelectionChanged">
                             <ComboBoxItem Content="Gasto"
                                           IsSelected="True"/>
@@ -138,6 +142,7 @@
                         <ComboBox x:Name="cmbCategoria"
                                   Grid.Column="1"
                                   Margin="0,20,10,0"
+                                  ToolTip="Categoría asociada al tipo seleccionado"
                                   Height="25"/>
 
                         <TextBlock Text="Importe (€)"
@@ -146,6 +151,7 @@
                         <TextBox x:Name="txtImporte"
                                  Grid.Column="2"
                                  Margin="0,20,10,0"
+                                 ToolTip="Importe de la transacción. Ejemplo: 25,50"
                                  Height="25"/>
 
                         <TextBlock Text="Descripción"
@@ -154,6 +160,7 @@
                         <TextBox x:Name="txtDescripcion"
                                  Grid.Column="3"
                                  Margin="0,20,10,0"
+                                 ToolTip="Descripción opcional para identificar mejor el movimiento"
                                  Height="25"/>
 
                         <Button x:Name="btnGuardarTransaccion"
@@ -165,6 +172,7 @@
                                 Click="btnGuardarTransaccion_Click"
                                 Background="#FF28A745"
                                 Foreground="White"
+                            ToolTip="Guardar la transacción con los datos introducidos"
                                 FontWeight="Bold"/>
                         </Grid>
                     </StackPanel>
@@ -244,16 +252,126 @@
                     </Grid>
                 </Grid>
 
-                <Grid Grid.Row="2"
-                      Margin="0,0,0,15">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                </Grid>
+                <Border Grid.Row="2"
+                        Background="#FFF8FBF7"
+                        BorderBrush="#FFDDE8D8"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="10"
+                        Margin="0,0,0,15">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
 
-                <Border Grid.Row="3"
+                        <TextBlock Grid.Row="0"
+                                   Text="Presupuestos mensuales por categoría"
+                                   FontSize="15"
+                                   FontWeight="Bold"
+                                   Foreground="#FF2C3E50"
+                                   Margin="0,0,0,10"/>
+
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="Categoría" FontWeight="Bold" Margin="0,0,0,2"/>
+                                <ComboBox x:Name="cmbPresupuestoCategoria"
+                                          Width="210"
+                                          Height="28"
+                                          ToolTip="Selecciona la categoría de gasto para definir su presupuesto"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                <TextBlock Text="Límite mensual (€)" FontWeight="Bold" Margin="0,0,0,2"/>
+                                <TextBox x:Name="txtPresupuestoLimite"
+                                         Width="170"
+                                         Height="28"
+                                         ToolTip="Importe máximo recomendado para esta categoría"/>
+                            </StackPanel>
+
+                            <Button x:Name="btnGuardarPresupuesto"
+                                    Grid.Column="2"
+                                    Content="Guardar"
+                                    Width="90"
+                                    Height="28"
+                                    Margin="0,20,10,0"
+                                    Click="btnGuardarPresupuesto_Click"
+                                    Background="#FF2E86C1"
+                                    Foreground="White"
+                                    FontWeight="Bold"/>
+
+                            <Button x:Name="btnReiniciarPresupuestos"
+                                    Grid.Column="3"
+                                    Content="Reset"
+                                    Width="80"
+                                    Height="28"
+                                    Margin="0,20,0,0"
+                                    Click="btnReiniciarPresupuestos_Click"
+                                    Background="#FF6C757D"
+                                    Foreground="White"
+                                    FontWeight="Bold"/>
+                        </Grid>
+
+                        <ItemsControl x:Name="itemsPresupuestos"
+                                      Grid.Row="2"
+                                      Margin="0,10,0,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="White"
+                                            BorderBrush="#FFE3E7EB"
+                                            BorderThickness="1"
+                                            CornerRadius="5"
+                                            Padding="8"
+                                            Margin="0,0,0,6">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Grid.Row="0"
+                                                       Grid.Column="0"
+                                                       Text="{Binding Categoria}"
+                                                       FontWeight="Bold"
+                                                       Foreground="#FF2C3E50"/>
+
+                                            <TextBlock Grid.Row="0"
+                                                       Grid.Column="1"
+                                                       Text="{Binding Resumen}"
+                                                       Foreground="#FF5A6270"
+                                                       FontSize="12"
+                                                       Margin="8,0,0,0"/>
+
+                                            <ProgressBar Grid.Row="1"
+                                                         Grid.Column="0"
+                                                         Grid.ColumnSpan="2"
+                                                         Minimum="0"
+                                                         Maximum="100"
+                                                         Value="{Binding Porcentaje}"
+                                                         Height="10"
+                                                         Margin="0,6,0,0"
+                                                         Foreground="{Binding ColorProgreso}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </Border>
+
+                <Border x:Name="borderFiltrosBusqueda" Grid.Row="3"
                         Background="#FFF7F9FB"
                         CornerRadius="6"
                         Padding="10"
@@ -264,30 +382,50 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0"
-                                   Text="Filtros de búsqueda"
-                                   FontSize="15"
-                                   FontWeight="Bold"
-                                   Foreground="#FF2C3E50"
-                                   Margin="0,0,0,10"/>
+                        <Grid Grid.Row="0" Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Filtros de búsqueda"
+                                           FontSize="15"
+                                           FontWeight="Bold"
+                                           Foreground="#FF2C3E50"/>
+                                <TextBlock Text="Solo afectan a la tabla, no al resumen financiero"
+                                           FontSize="12"
+                                           Foreground="#FF6C757D"
+                                           Margin="0,2,0,0"/>
+                            </StackPanel>
+
+                            <Button x:Name="btnRefrescar"
+                                    Grid.Column="1"
+                                    Content="↻ Actualizar"
+                                    Height="30"
+                                    Width="120"
+                                    Click="btnRefrescar_Click"
+                                    Background="#FF17A2B8"
+                                    Foreground="White"
+                                    ToolTip="Recargar transacciones desde la base de datos"
+                                    FontWeight="Bold"/>
+                        </Grid>
 
                         <Grid Grid.Row="1">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="1.2*"/>
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0" Margin="0,0,12,0" HorizontalAlignment="Left">
-                                <TextBlock Text="Tipo"
-                                           FontWeight="Bold"
-                                           Margin="0,0,0,2"/>
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="Tipo" FontWeight="SemiBold" Margin="0,0,0,4"/>
                                 <ComboBox x:Name="cmbFiltroTipo"
-                                          Width="250"
-                                          Height="28"
+                                          Height="30"
+                                          ToolTip="Filtra por tipo de transacción"
                                           SelectedIndex="0"
                                           SelectionChanged="cmbFiltroTipo_SelectionChanged">
                                     <ComboBoxItem Content="Todos"/>
@@ -296,132 +434,98 @@
                                 </ComboBox>
                             </StackPanel>
 
-                            <StackPanel Grid.Column="1" Margin="0,0,12,0" HorizontalAlignment="Left">
-                                <TextBlock Text="Categoría"
-                                           FontWeight="Bold"
-                                           Margin="0,0,0,2"/>
+                            <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                <TextBlock Text="Categoría" FontWeight="SemiBold" Margin="0,0,0,4"/>
                                 <ComboBox x:Name="cmbFiltroCategoria"
-                                          Width="250"
-                                          Height="28"/>
+                                          Height="30"
+                                          ToolTip="Filtra por categoría"/>
                             </StackPanel>
 
-                            <StackPanel Grid.Column="2" Margin="0,0,0,0" HorizontalAlignment="Left">
-                                <TextBlock Text="Periodo"
-                                           FontWeight="Bold"
-                                           Margin="0,0,0,2"/>
+                            <StackPanel Grid.Column="2" Margin="0,0,10,0">
+                                <TextBlock Text="Periodo" FontWeight="SemiBold" Margin="0,0,0,4"/>
                                 <ComboBox x:Name="cmbFiltroPeriodo"
-                                          Width="250"
-                                          Height="28"
+                                          Height="30"
+                                          ToolTip="Limita la vista a histórico o al mes actual"
                                           SelectedIndex="0">
                                     <ComboBoxItem Content="Historico"/>
                                     <ComboBoxItem Content="Mes actual"/>
                                 </ComboBox>
                             </StackPanel>
+
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Text="Buscar" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                <TextBox x:Name="txtFiltroTexto"
+                                         Height="30"
+                                         ToolTip="Busca por descripción, categoría o tipo"/>
+                            </StackPanel>
                         </Grid>
 
-                        <Grid Grid.Row="2" Margin="0,12,0,0">
+                        <Grid Grid.Row="2" Margin="0,10,0,0">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0" Margin="0,0,12,0" HorizontalAlignment="Left">
-                                <TextBlock Text="Desde"
-                                           FontWeight="Bold"
-                                           Margin="0,0,0,2"/>
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="Desde" FontWeight="SemiBold" Margin="0,0,0,4"/>
                                 <DatePicker x:Name="dpFechaDesde"
-                                            Width="250"
-                                            Height="28"/>
+                                            Width="190"
+                                            Height="30"
+                                            ToolTip="Fecha mínima del rango"/>
                             </StackPanel>
 
-                            <StackPanel Grid.Column="1" Margin="0,0,12,0" HorizontalAlignment="Left">
-                                <TextBlock Text="Hasta"
-                                           FontWeight="Bold"
-                                           Margin="0,0,0,2"/>
+                            <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                <TextBlock Text="Hasta" FontWeight="SemiBold" Margin="0,0,0,4"/>
                                 <DatePicker x:Name="dpFechaHasta"
-                                            Width="250"
-                                            Height="28"/>
+                                            Width="190"
+                                            Height="30"
+                                            ToolTip="Fecha máxima del rango"/>
                             </StackPanel>
-                        </Grid>
 
-                        <Grid Grid.Row="3" Margin="0,12,0,0">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <StackPanel Grid.Column="0" Margin="0,0,12,0" HorizontalAlignment="Left">
-                                <TextBlock Text="Min €"
-                                           FontWeight="Bold"
-                                           Margin="0,0,0,2"/>
+                            <StackPanel Grid.Column="2" Margin="0,0,10,0">
+                                <TextBlock Text="Importe mín." FontWeight="SemiBold" Margin="0,0,0,4"/>
                                 <TextBox x:Name="txtImporteMin"
-                                         Width="250"
-                                         Height="28"/>
+                                         Width="190"
+                                         Height="30"
+                                         ToolTip="Importe mínimo incluido en el filtro"/>
                             </StackPanel>
 
-                            <StackPanel Grid.Column="1" Margin="0,0,12,0" HorizontalAlignment="Left">
-                                <TextBlock Text="Max €"
-                                           FontWeight="Bold"
-                                           Margin="0,0,0,2"/>
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Text="Importe máx." FontWeight="SemiBold" Margin="0,0,0,4"/>
                                 <TextBox x:Name="txtImporteMax"
-                                         Width="250"
-                                         Height="28"/>
+                                         Width="190"
+                                         Height="30"
+                                         ToolTip="Importe máximo incluido en el filtro"/>
                             </StackPanel>
                         </Grid>
 
-                        <Grid Grid.Row="4" Margin="0,12,0,0">
-                            <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <StackPanel Grid.Column="0" Margin="0,0,12,0" HorizontalAlignment="Left">
-                            <TextBlock Text="Buscar"
-                                   FontWeight="Bold"
-                                   Margin="0,0,0,2"/>
-                            <TextBox x:Name="txtFiltroTexto"
-                                 Width="250"
-                                 Height="28"/>
-                            </StackPanel>
-
-                            <StackPanel Grid.Column="1"
-                                Grid.ColumnSpan="2"
-                                Orientation="Horizontal"
-                                HorizontalAlignment="Left"
-                                Margin="0,20,0,0">
-                            <Button x:Name="btnAplicarFiltros"
-                                Content="Aplicar"
-                                Height="28"
-                                Width="88"
-                                Margin="0,0,8,0"
-                                Click="btnAplicarFiltros_Click"
-                                Background="#FF2E86C1"
-                                Foreground="White"
-                                FontWeight="Bold"/>
-
+                        <StackPanel Grid.Row="3"
+                                    Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    Margin="0,12,0,0">
                             <Button x:Name="btnLimpiarFiltros"
-                                Content="Limpiar"
-                                Height="28"
-                                Width="88"
-                                Margin="0,0,8,0"
-                                Click="btnLimpiarFiltros_Click"
-                                Background="#FF6C757D"
-                                Foreground="White"
-                                FontWeight="Bold"/>
+                                    Content="Limpiar"
+                                    Height="30"
+                                    Width="100"
+                                    Margin="0,0,8,0"
+                                    Click="btnLimpiarFiltros_Click"
+                                    Background="#FF6C757D"
+                                    Foreground="White"
+                                    ToolTip="Quitar filtros y volver a la vista completa"
+                                    FontWeight="Bold"/>
 
-                            <Button x:Name="btnRefrescar"
-                                Content="🔄 Actualizar Tabla"
-                                Height="28"
-                                Width="150"
-                                Click="btnRefrescar_Click"
-                                Background="#FF17A2B8"
-                                Foreground="White"
-                                FontWeight="Bold"/>
-                            </StackPanel>
-                        </Grid>
+                            <Button x:Name="btnAplicarFiltros"
+                                    Content="Aplicar filtros"
+                                    Height="30"
+                                    Width="130"
+                                    Click="btnAplicarFiltros_Click"
+                                    Background="#FF2E86C1"
+                                    Foreground="White"
+                                    ToolTip="Aplicar todos los filtros seleccionados"
+                                    FontWeight="Bold"/>
+                        </StackPanel>
                     </Grid>
                 </Border>
 
@@ -461,7 +565,7 @@
                     </StackPanel>
                 </Border>
 
-                <Grid Grid.Row="5"
+                    <Grid x:Name="panelHistorialTransacciones" Grid.Row="5"
                       Margin="0,0,0,8">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -475,16 +579,58 @@
                                Foreground="#FF2C3E50"
                                Margin="0,0,0,8"/>
 
-                    <DataGrid x:Name="gridTransacciones"
-                              Grid.Row="1"
-                              AutoGenerateColumns="True"
-                              IsReadOnly="True"
-                              Background="White"
-                              AlternatingRowBackground="#FFF9F9F9"
-                              SelectionMode="Single"/>
+                    <Grid Grid.Row="1">
+                        <DataGrid x:Name="gridTransacciones"
+                                  AutoGenerateColumns="True"
+                                  IsReadOnly="True"
+                                  Background="White"
+                                  AlternatingRowBackground="#FFF9F9F9"
+                                  SelectionMode="Single"/>
+
+                        <Border x:Name="panelEstadoVacioTransacciones"
+                                Visibility="Collapsed"
+                                Background="#CCFFFFFF"
+                                BorderBrush="#FFE3E7EB"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Margin="12"
+                                Padding="20">
+                            <StackPanel HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                                <TextBlock Text="No hay transacciones para mostrar"
+                                           FontSize="16"
+                                           FontWeight="Bold"
+                                           Foreground="#FF2C3E50"
+                                           HorizontalAlignment="Center"
+                                           Margin="0,0,0,6"/>
+                                <TextBlock Text="Prueba a limpiar filtros o registra una nueva transacción."
+                                           Foreground="#FF5A6270"
+                                           HorizontalAlignment="Center"
+                                           TextAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border x:Name="panelCargaTransacciones"
+                                Visibility="Collapsed"
+                                Background="#AAFFFFFF"
+                                CornerRadius="8">
+                            <StackPanel HorizontalAlignment="Center"
+                                        VerticalAlignment="Center">
+                                <ProgressBar Width="220"
+                                             Height="8"
+                                             IsIndeterminate="True"
+                                             Margin="0,0,0,10"/>
+                                <TextBlock x:Name="txtEstadoCargaTransacciones"
+                                           Text="Cargando transacciones..."
+                                           FontWeight="SemiBold"
+                                           Foreground="#FF2C3E50"
+                                           HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
                 </Grid>
 
-                <Grid Grid.Row="6"
+                    <Grid x:Name="panelAccionesRapidas" Grid.Row="6"
                       Margin="0,10,0,0">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -515,6 +661,7 @@
                         Click="btnExportarCsv_Click"
                         Background="#FF198754"
                         Foreground="White"
+                        ToolTip="Exportar las transacciones visibles a un archivo CSV"
                         FontWeight="Bold"/>
 
                     <Button x:Name="btnBorrarTransaccion"
@@ -526,6 +673,7 @@
                         Click="btnBorrarTransaccion_Click"
                         Background="#FFDC3545"
                         Foreground="White"
+                        ToolTip="Eliminar la fila seleccionada en la tabla de transacciones"
                         FontWeight="Bold"/>
                 </Grid>
                 </Grid>
@@ -546,6 +694,7 @@
                             Click="btnNuevoObjetivo_Click"
                             Background="#FF6F42C1"
                             Foreground="White"
+                            ToolTip="Crear un nuevo objetivo de ahorro"
                             FontWeight="Bold"
                             Margin="0,0,10,0"/>
                     <Button x:Name="btnBorrarObjetivo"
@@ -555,11 +704,12 @@
                             Click="btnBorrarObjetivo_Click"
                             Background="#FFDC3545"
                             Foreground="White"
+                            ToolTip="Eliminar el objetivo seleccionado"
                             FontWeight="Bold"/>
                 </StackPanel>
 
-                <DataGrid x:Name="gridObjetivos"
-                        Grid.Row="1"
+                <Grid Grid.Row="1">
+                    <DataGrid x:Name="gridObjetivos"
                         AutoGenerateColumns="False"
                         IsReadOnly="True"
                         Background="White"
@@ -567,40 +717,64 @@
                         SelectionMode="Single">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Prioridad"
-                                Binding="{Binding PrioridadTexto}"
-                                Width="80"/>
+                            Binding="{Binding PrioridadTexto}"
+                            Width="80"/>
                         <DataGridTextColumn Header="Meta"
-                                Binding="{Binding Nombre}"
-                                Width="*"/>
+                            Binding="{Binding Nombre}"
+                            Width="*"/>
                         <DataGridTextColumn Header="Ahorrado"
-                                Binding="{Binding AhorroActual, StringFormat={}{0:0.00} €}"
-                                Width="90"/>
+                            Binding="{Binding AhorroActual, StringFormat={}{0:0.00} €}"
+                            Width="90"/>
                         <DataGridTextColumn Header="Coste"
-                                Binding="{Binding CosteTotal, StringFormat={}{0:0.00} €}"
-                                Width="90"/>
+                            Binding="{Binding CosteTotal, StringFormat={}{0:0.00} €}"
+                            Width="90"/>
 
                         <DataGridTemplateColumn Header="Progreso"
-                                Width="150">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <ProgressBar Minimum="0"
-                                            Maximum="{Binding CosteTotal}"
-                                            Value="{Binding AhorroActual}"
-                                            Height="15"
-                                            Margin="5,0"
-                                            Foreground="#28A745"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
+                            Width="150">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                            <ProgressBar Minimum="0"
+                                Maximum="{Binding CosteTotal}"
+                                Value="{Binding AhorroActual}"
+                                Height="15"
+                                Margin="5,0"
+                                Foreground="#28A745"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
                         <DataGridTextColumn Header="%"
-                                Binding="{Binding Porcentaje, StringFormat={}{0:0.0}%}"
-                                Width="60"/>
+                            Binding="{Binding Porcentaje, StringFormat={}{0:0.0}%}"
+                            Width="60"/>
                         <DataGridTextColumn Header="Id"
-                                Binding="{Binding Id}"
-                                Visibility="Hidden"/>
+                            Binding="{Binding Id}"
+                            Visibility="Hidden"/>
                     </DataGrid.Columns>
-                </DataGrid>
+                    </DataGrid>
+
+                    <Border x:Name="panelEstadoVacioObjetivos"
+                        Visibility="Collapsed"
+                        Background="#CCFFFFFF"
+                        BorderBrush="#FFE3E7EB"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Margin="12"
+                        Padding="20">
+                    <StackPanel HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="Todavía no tienes objetivos"
+                               FontSize="16"
+                               FontWeight="Bold"
+                               Foreground="#FF2C3E50"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,6"/>
+                        <TextBlock Text="Pulsa en 'Nuevo Objetivo' para empezar a planificar tu ahorro."
+                               Foreground="#FF5A6270"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"/>
+                    </StackPanel>
+                    </Border>
+                </Grid>
             </Grid>
 
             </Grid>

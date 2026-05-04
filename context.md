@@ -318,6 +318,68 @@ CREATE TABLE IF NOT EXISTS Objetivos (
 - Inicio -> Login/Registro -> MainWindow operativo.
 - Modulo de transacciones operativo (alta/listado/borrado/refresco y calculo de saldo en UI).
 - Modulo de objetivos operativo desde panel simulador y modal de alta.
+
+## 15) Actualizacion Reciente (2026-04-21 / 2026-04-22)
+
+### 15.1 UX y guia de uso
+
+- Se anadio onboarding inicial y guia interactiva por pasos en dashboard:
+    - bienvenida de primer uso
+    - guia paso a paso para registrar, visualizar y borrar transacciones
+    - foco visual por seccion (registro/historial/acciones)
+- El estado del onboarding ya es por usuario (no global):
+    - persistencia en `onboarding-mainwindow.json` bajo LocalApplicationData
+    - cada usuario nuevo ve su tutorial la primera vez
+- Se corrigio el cierre del tutorial para restaurar siempre opacidades/estilos (sin dejar pantalla atenuada).
+
+### 15.2 Autenticacion y flujo de registro
+
+- Registro mejorado:
+    - al crear cuenta se inicia sesion automaticamente
+    - se abre MainWindow directo sin pasar por login manual
+- `AuthService.RegisterUser` ahora devuelve el `Id` insertado para habilitar auto-login.
+
+### 15.3 Dashboard y animaciones
+
+- MainWindow incorpora animaciones suaves:
+    - entrada escalonada de bloques principales (fade + slide)
+    - transicion al cambiar entre panel Transacciones y panel Objetivos
+- Se mantuvo la logica existente de negocio, aplicando solo mejoras de percepcion visual.
+
+### 15.4 Filtros y coherencia de datos
+
+- Rediseño del bloque de filtros:
+    - layout mas compacto e intuitivo
+    - acciones mas claras (`Aplicar`, `Limpiar`, `Actualizar`)
+    - mensaje explicito de que filtros afectan a busqueda
+- Correccion funcional importante:
+    - el resumen financiero y saldo ya no cambian al filtrar
+    - filtros afectan solo a la tabla de resultados
+    - calculo de resumen usa siempre el conjunto completo de transacciones del usuario
+
+### 15.5 Presupuestos por categoria (nuevo modulo)
+
+- Implementado modulo de presupuestos mensuales por categoria de gasto:
+    - selector de categoria
+    - limite mensual
+    - guardar y reset de presupuestos
+    - lista de progreso por categoria con barra y semaforo (verde/amarillo/rojo)
+- Persistencia por usuario en LocalApplicationData:
+    - archivo `presupuestos-mainwindow.json`
+
+### 15.6 Build y tooling
+
+- Se creo tarea de VS Code para build estable sobre `UNUM.sln` (evitando confusion con `.slnx`).
+- Incidencia conocida:
+    - si `UNUM.exe` esta abierto, `dotnet build` puede fallar por archivo bloqueado (`MSB3026`).
+
+### 15.7 Estado actual validado
+
+- Compilaciones recientes correctas en `UNUM.sln` tras los cambios UX/funcionales.
+- Proyecto en estado operativo con foco en siguiente etapa por bloques:
+    1. Alertas de presupuestos (80% / 100%)
+    2. Resumen de exceso por categorias
+    3. Tendencias y recordatorios inteligentes
 - Autenticacion y registro por AuthService con hash BCrypt y compatibilidad de columna Contrasena/Contraseña.
 
 ### 14.5 Pendiente inmediato recomendado

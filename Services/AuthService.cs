@@ -28,7 +28,7 @@ public class AuthService
         return validCredentials ? userId : null;
     }
 
-    public void RegisterUser(string username, string plainPassword)
+    public int RegisterUser(string username, string plainPassword)
     {
         var hashedPassword = PasswordHasher.Hash(plainPassword);
 
@@ -40,6 +40,8 @@ public class AuthService
         command.Parameters.AddWithValue("@user", username);
         command.Parameters.AddWithValue("@pass", hashedPassword);
         command.ExecuteNonQuery();
+
+        return Convert.ToInt32(command.LastInsertedId);
     }
 
     public void EnsureDemoUser(string username, string plainPassword)
