@@ -96,7 +96,41 @@ CREATE TABLE IF NOT EXISTS Objetivos (
     2. ejecutar cambios solicitados
     3. actualizar este archivo con avances, decisiones y pendientes
 
-## 7) Pendientes de Contexto
+## 7) Refactor MVVM - Progreso (2026-05-05)
+
+### ✅ Completado:
+
+**Arquitectura**
+
+- `ViewModels/ViewModelBase.cs`: Clase base con INotifyPropertyChanged
+- `ViewModels/RelayCommand.cs`: Implementación de comandos (sync/async, genéricos)
+- `Models/TransactionModel.cs`: Modelos de datos (Transaction, Budget, FilterState, etc.)
+- `ViewModels/MainWindowViewModel.cs`: ViewModel con toda la lógica de negocio refactorizada
+
+**Características del ViewModel**:
+
+- ✅ Propiedades bindables (DataView, Summary, Budgets, Filters)
+- ✅ Commands: GuardarTransacción, BorrarTransacción, AplicarFiltros, ExportarCSV, etc.
+- ✅ Lógica de filtros persistente (GuardarEstadoFiltros/RestaurarEstadoFiltros)
+- ✅ Lógica de presupuestos (GuardarPresupuesto, ActualizarPanelPresupuestos)
+- ✅ Validaciones integradas en métodos del ViewModel
+- ✅ Cálculos centralizados (ActualizarResumenFinanciero)
+
+### ⏳ Pendiente:
+
+1. **Simplificar MainWindow.xaml.cs** ✅ COMPLETADO
+    - Mantuvo: DataContext setup, navegación modal, animaciones
+    - Eliminó: toda lógica de filtros, transacciones, presupuestos (→ ViewModel)
+    - Resultado: 1500 líneas → 105 líneas
+
+2. **Actualizar MainWindow.xaml - PRÓXIMO PASO**
+    - Reemplazar Text=" value" con bindings `Text="{Binding Propiedad}"`
+    - Reemplazar ComboBox items con ItemsSource bindings
+    - Reemplazar DataGrid con ItemsSource binding
+    - Reemplazar botones Click handlers con Command bindings
+    - Añadir Converters si es necesario
+
+3. **Compilación**: ✅ Sin errores actualmente
 
 - Falta el PDF funcional en el workspace/adjuntos de esta sesion para extraer requisitos detallados.
 - Cuando se reciba, incorporar seccion de requisitos funcionales/no funcionales con trazabilidad a backlog.
@@ -364,6 +398,17 @@ CREATE TABLE IF NOT EXISTS Objetivos (
     - limite mensual
     - guardar y reset de presupuestos
     - lista de progreso por categoria con barra y semaforo (verde/amarillo/rojo)
+
+### 15.6 Cambios MVVM recientes (2026-05-05)
+
+- Se movió la responsabilidad de visibilidad de paneles (`Transacciones` / `Simulador`) al `ViewModel`:
+    - nuevas propiedades bindables en `ViewModels/MainWindowViewModel.cs`: `IsTransaccionesVisible`, `IsSimuladorVisible`.
+    - `MostrarPanel` ahora actualiza estas propiedades además de las banderas de menú.
+- Se actualizaron bindings en `Components/Frontend/MainWindow.xaml` para usar `Visibility` enlazada a las nuevas propiedades (con `BooleanToVisibilityConverter`).
+- `Components/Backend/MainWindow.xaml.cs` ahora se suscribe a `INotifyPropertyChanged` del ViewModel y lanza las animaciones de entrada/transición cuando las propiedades de visibilidad cambian. La animación y lógica UI permanece en la View.
+- Se compiló la solución tras cambios y el build resultó exitoso (0 errores, 0 advertencias).
+
+Estado: `Actualizar context.md con los cambios realizados` — en progreso (esta entrada la completa).
 - Persistencia por usuario en LocalApplicationData:
     - archivo `presupuestos-mainwindow.json`
 
@@ -484,6 +529,39 @@ CREATE TABLE IF NOT EXISTS Objetivos (
     - btnLimpiarFiltros_Click ahora resetea tambien tipo y periodo.
 
 ### 17.4 Validacion tecnica
+
+## 18) Continuacion MVVM MainWindow (2026-05-05)
+
+### 18.1 Simulador de objetivos migrado a bindings
+
+- En MainWindow (panel simulador), los botones de objetivos dejaron de depender de handlers en code-behind:
+    - `Nuevo Objetivo` usa `NuevoObjetivoCommand`
+    - `Borrar Seleccionado` usa `BorrarObjetivoCommand`
+- El `DataGrid` de objetivos ahora se alimenta desde ViewModel:
+    - `ItemsSource` -> `Objetivos`
+    - `SelectedItem` -> `ObjetivoSeleccionado`
+- El estado vacio del panel de objetivos se enlaza por converter (`EmptyCollectionToVisibilityConverter`).
+
+### 18.2 ViewModel ampliado para objetivos
+
+- `MainWindowViewModel` ahora incluye:
+    - estado: `ObservableCollection<ObjectiveItemModel> Objetivos`
+    - seleccion: `ObjectiveItemModel? ObjetivoSeleccionado`
+    - carga: `CargarObjetivos()` desde `ObjectiveService`
+    - acciones: crear y borrar objetivos via comandos
+- Se anadio modelo dedicado `ObjectiveItemModel` para desacoplar la vista del DataRow/DataTable crudo.
+
+### 18.3 Limpieza adicional de code-behind
+
+- `MainWindow.xaml.cs` se simplifico retirando codigo muerto relacionado con objetivos:
+    - eliminado el campo `_usuarioId` (ya no necesario en esta ventana)
+    - eliminado `btnObjetivos_Click` (sin referencias activas)
+- Se mantiene en code-behind solo lo estrictamente UI (navegacion global, animaciones, lifecycle inicial).
+
+### 18.4 Validacion tecnica
+
+- `dotnet build UNUM.sln` ejecutado tras los cambios: compilacion correcta.
+- Resultado: 0 errores, 0 advertencias.
 
 - Validacion de XAML y C# sin errores de editor.
 - Build lanzado durante ejecucion de la app mostro bloqueos de archivo UNUM.exe (MSB3026) por proceso en uso.
@@ -691,6 +769,30 @@ CREATE TABLE IF NOT EXISTS Objetivos (
 
 - LoginWindow ahora separa:
     - errores de autenticacion/BD
+
+## 25) Avance Implementado - Servicio de Dialogos para MVVM (2026-05-05)
+
+### 25.1 Objetivo
+
+- Reducir acoplamiento del `MainWindowViewModel` con clases de UI concretas (ventanas/modales).
+
+### 25.2 Cambios tecnicos
+
+- Se incorporo abstraccion de dialogos:
+    - `Services/IWindowDialogService.cs`
+    - `Services/WindowDialogService.cs`
+- `MainWindowViewModel` ahora recibe `IWindowDialogService` por constructor.
+- El comando `NuevoObjetivoCommand` ya no instancia `ObjetivoModalWindow` directamente; delega en el servicio.
+- `MainWindow.xaml.cs` inyecta `WindowDialogService` al crear el ViewModel.
+
+### 25.3 Limpieza relacionada
+
+- Se mantiene la ventana principal mas enfocada en composicion (DataContext + animaciones + navegacion de paneles), con menos logica de detalle en ViewModel sobre UI concreta.
+
+### 25.4 Validacion tecnica
+
+- `dotnet build UNUM.sln` correcto tras la refactorizacion.
+- Resultado: 0 errores, 0 advertencias.
     - errores al abrir MainWindow tras login exitoso
 - Si falla la apertura del panel principal, se muestra mensaje especifico:
     - "Error al abrir el panel principal".
@@ -728,3 +830,96 @@ CREATE TABLE IF NOT EXISTS Objetivos (
 
 - No existe regla automatica que al registrar ingresos/gastos actualice AhorroActual de objetivos.
 - El progreso de objetivos se actualiza manualmente desde la ventana de objetivos.
+
+## 27) Continuacion MVVM - Cierre de Sesion por Command (2026-05-05)
+
+### 27.1 Objetivo
+
+- Reducir responsabilidad de `MainWindow.xaml.cs` moviendo cierre de sesion a comando del ViewModel.
+
+### 27.2 Cambios tecnicos
+
+- `MainWindow.xaml`:
+    - `btnCerrarSesion` paso de `Click` a `Command` (`CerrarSesionCommand`).
+- `MainWindowViewModel`:
+    - nuevo comando `CerrarSesionCommand`.
+    - nuevo evento `RequestClose` para solicitar cierre de la ventana host.
+    - `CerrarSesion()` ahora abre Inicio via servicio y solicita cierre por evento.
+- `IWindowDialogService` / `WindowDialogService`:
+    - nuevo metodo `ShowInicioWindow()`.
+- `MainWindow.xaml.cs`:
+    - se suscribe a `RequestClose` para ejecutar `Close()`.
+    - se elimina `btnCerrarSesion_Click`.
+
+### 27.3 Resultado
+
+- Menor acoplamiento del code-behind con flujo de sesion.
+- Navegacion y dialogos gestionados por servicios y comandos MVVM.
+
+### 27.4 Validacion tecnica
+
+- `dotnet build UNUM.sln` correcto.
+- Resultado: 0 errores, 0 advertencias.
+
+## 28) Continuacion MVVM - Navegacion de Paneles por Command (2026-05-05)
+
+### 28.1 Objetivo
+
+- Pasar la navegacion entre `Transacciones` y `Simulador` a comandos del ViewModel, manteniendo en code-behind solo la parte visual/animacion.
+
+### 28.2 Cambios tecnicos
+
+- `MainWindowViewModel`:
+    - nuevo enum `MainPanelType` (`Transacciones`, `Simulador`).
+    - nuevo evento `RequestPanelNavigation`.
+    - nuevos comandos:
+        - `MostrarTransaccionesCommand`
+        - `MostrarSimuladorCommand`
+- `MainWindow.xaml`:
+    - `btnMenuTransacciones` migra de `Click` a `Command`.
+    - `btnMenuSimulador` migra de `Click` a `Command`.
+- `MainWindow.xaml.cs`:
+    - suscripcion a `RequestPanelNavigation`.
+    - nuevo metodo `NavigateToPanel(MainPanelType panel)` para ejecutar animaciones y estilos activos.
+    - eliminados handlers `btnMenuTransacciones_Click` y `btnMenuSimulador_Click`.
+
+### 28.3 Resultado
+
+- El origen de la intencion de navegacion queda en ViewModel (comandos MVVM).
+- El code-behind conserva solo logica de transicion visual (animacion/estilo).
+
+### 28.4 Validacion tecnica
+
+- `dotnet build UNUM.sln` correcto tras la migracion.
+- Resultado: 0 errores, 0 advertencias.
+
+## 29) Continuacion MVVM - Estado Visual de Menu por Binding (2026-05-05)
+
+### 29.1 Objetivo
+
+- Quitar del code-behind el control manual de color activo del menu lateral y moverlo a estado bindable del ViewModel.
+
+### 29.2 Cambios tecnicos
+
+- `MainWindowViewModel`:
+    - nuevas propiedades bindables:
+        - `MenuTransaccionesActivo`
+        - `MenuSimuladorActivo`
+    - los comandos de navegacion (`MostrarTransaccionesCommand`, `MostrarSimuladorCommand`) ahora actualizan estas propiedades antes de disparar `RequestPanelNavigation`.
+- `ValueConverters`:
+    - nuevo converter `MenuActiveBackgroundConverter` para mapear bool -> brush de menu activo/inactivo.
+- `MainWindow.xaml`:
+    - `Background` de `btnMenuTransacciones` y `btnMenuSimulador` enlazado por binding con `MenuActiveBackgroundConverter`.
+- `MainWindow.xaml.cs`:
+    - `NavigateToPanel(...)` conserva solo animacion/transicion de paneles.
+    - eliminada la asignacion manual de colores de botones.
+
+### 29.3 Resultado
+
+- El estado visual del menu queda centralizado en ViewModel.
+- Code-behind mas delgado y limitado a comportamiento visual no bindable (animaciones).
+
+### 29.4 Validacion tecnica
+
+- `dotnet build UNUM.sln` correcto tras el ajuste.
+- Resultado: 0 errores, 0 advertencias.
