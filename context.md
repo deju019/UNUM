@@ -409,6 +409,7 @@ CREATE TABLE IF NOT EXISTS Objetivos (
 - Se compiló la solución tras cambios y el build resultó exitoso (0 errores, 0 advertencias).
 
 Estado: `Actualizar context.md con los cambios realizados` — en progreso (esta entrada la completa).
+
 - Persistencia por usuario en LocalApplicationData:
     - archivo `presupuestos-mainwindow.json`
 
