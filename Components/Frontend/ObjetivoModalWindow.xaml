@@ -1,49 +1,102 @@
 <Window x:Class="UNUM.ObjetivoModalWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Añadir/Editar Objetivo"
-        Height="350"
-        Width="300"
+        Title="Objetivo de Ahorro"
+        Height="420"
+        Width="380"
         WindowStartupLocation="CenterOwner"
-        ResizeMode="NoResize">
-    <Grid Margin="20">
-        <StackPanel>
-            <TextBlock Text="Nombre del Objetivo:"/>
-            <TextBox x:Name="txtNombre"
-                    Margin="0,5,0,15"
-                    Height="25"/>
+        ResizeMode="NoResize"
+        Background="White"
+        Topmost="True">
+    <Border BorderBrush="#FFE3E7EB" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-            <TextBlock Text="Coste Total (€):"/>
-            <TextBox x:Name="txtCoste"
-                    Margin="0,5,0,15"
-                    Height="25"/>
+            <StackPanel Grid.Row="0" Margin="20">
+                <TextBlock Text="Crea tu objetivo de ahorro"
+                           FontSize="18"
+                           FontWeight="Bold"
+                           Foreground="#FF2C3E50"
+                           Margin="0,0,0,20"/>
 
-            <TextBlock Text="Ahorro Actual (€):"/>
-            <TextBox x:Name="txtAhorro"
-                    Text="0"
-                    Margin="0,5,0,15"
-                    Height="25"/>
+                <TextBlock Text="Nombre del objetivo"
+                           FontWeight="SemiBold"
+                           Foreground="#FF2C3E50"
+                           Margin="0,0,0,6"
+                           FontSize="12"/>
+                <TextBox x:Name="txtNombre"
+                        Margin="0,0,0,15"
+                        Height="32"
+                        Padding="8,6"
+                        ToolTip="Ejemplo: Nuevo laptop, Vacaciones, Emergencia"/>
 
-            <TextBlock Text="Prioridad:"/>
-            <ComboBox x:Name="cmbPrioridad"
-                    Margin="0,5,0,25"
-                    Height="25">
-                <ComboBoxItem Content="1 - Alta"
-                        Tag="1"/>
-                <ComboBoxItem Content="2 - Media"
-                        Tag="2"
-                        IsSelected="True"/>
-                <ComboBoxItem Content="3 - Baja"
-                        Tag="3"/>
-            </ComboBox>
+                <TextBlock Text="Cantidad total a ahorrar (€)"
+                           FontWeight="SemiBold"
+                           Foreground="#FF2C3E50"
+                           Margin="0,0,0,6"
+                           FontSize="12"/>
+                <TextBox x:Name="txtCoste"
+                        Margin="0,0,0,15"
+                        Height="32"
+                        Padding="8,6"
+                        ToolTip="Ejemplo: 1500"/>
 
-            <Button x:Name="btnGuardar"
-                    Content="Guardar Objetivo"
-                    Height="35"
-                    Background="#FF0078D7"
-                    Foreground="White"
-                    FontWeight="Bold"
-                    Click="btnGuardar_Click"/>
-        </StackPanel>
-    </Grid>
+                <TextBlock Text="Ya tienes ahorrado (€)"
+                           FontWeight="SemiBold"
+                           Foreground="#FF2C3E50"
+                           Margin="0,0,0,6"
+                           FontSize="12"/>
+                <TextBox x:Name="txtAhorro"
+                        Text="0"
+                        Margin="0,0,0,15"
+                        Height="32"
+                        Padding="8,6"
+                        ToolTip="Cantidad que ya has ahorrado para este objetivo"/>
+
+                <TextBlock Text="Prioridad"
+                           FontWeight="SemiBold"
+                           Foreground="#FF2C3E50"
+                           Margin="0,0,0,6"
+                           FontSize="12"/>
+                <ComboBox x:Name="cmbPrioridad"
+                        Margin="0,0,0,0"
+                        Height="32"
+                        Padding="8,6">
+                    <ComboBoxItem Content="🔴 Alta prioridad"
+                            Tag="1"/>
+                    <ComboBoxItem Content="🟡 Media prioridad"
+                            Tag="2"
+                            IsSelected="True"/>
+                    <ComboBoxItem Content="🟢 Baja prioridad"
+                            Tag="3"/>
+                </ComboBox>
+            </StackPanel>
+
+            <Border Grid.Row="1" Background="#FFF8FBFA" BorderBrush="#FFE3E7EB" BorderThickness="1,1,1,0" Padding="15">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="btnCancelar"
+                            Content="Cancelar"
+                            Height="36"
+                            Width="100"
+                            Margin="0,0,10,0"
+                            Background="#FF6C757D"
+                            Foreground="White"
+                            FontWeight="Bold"
+                            Click="btnCancelar_Click"/>
+                    <Button x:Name="btnGuardar"
+                            Content="Guardar objetivo"
+                            Height="36"
+                            Width="130"
+                            Background="#FF28A745"
+                            Foreground="White"
+                            FontWeight="Bold"
+                            Click="btnGuardar_Click"
+                            ToolTip="Guardar este objetivo"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
 </Window>

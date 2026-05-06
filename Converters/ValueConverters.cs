@@ -137,6 +137,30 @@ public class MenuActiveBackgroundConverter : IValueConverter
 }
 
 /// <summary>
+/// Convierte un valor decimal (saldo) a un Brush.
+/// Negativo → Rojo, Positivo o Cero → Azul
+/// </summary>
+public class DecimalSaldoToBrushConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is decimal saldoValue)
+        {
+            return saldoValue < 0
+                ? new SolidColorBrush(Color.FromRgb(192, 57, 43))   // Rojo para negativo
+                : new SolidColorBrush(Color.FromRgb(29, 78, 137));  // Azul para positivo
+        }
+
+        return new SolidColorBrush(Color.FromRgb(29, 78, 137)); // Azul por defecto
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+/// <summary>
 /// Convierte Visibility basado en si una colección está vacía.
 /// Count == 0 → Visible, Count > 0 → Collapsed
 /// </summary>

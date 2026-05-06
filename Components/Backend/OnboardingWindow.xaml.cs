@@ -14,10 +14,5 @@ namespace UNUM
             this.DialogResult = true;
             this.Close();
         }
-
-        public bool? NoMostrarAlInicio
-        {
-            get { return chkMostrarAlInicio?.IsChecked; }
-        }
     }
 }

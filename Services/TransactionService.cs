@@ -51,4 +51,28 @@ public class TransactionService
         var affectedRows = command.ExecuteNonQuery();
         return affectedRows > 0;
     }
+
+    public bool UpdateTransaction(int transactionId, int userId, string tipo, string categoria, decimal importe, DateTime fecha, string descripcion)
+    {
+        if (transactionId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(transactionId), "El identificador de la transacción no es válido.");
+        }
+
+        using var connection = DbConnectionFactory.CreateOpenConnection();
+
+        const string query = "UPDATE Transacciones SET Tipo = @tipo, Categoria = @categoria, Importe = @importe, FechaTransaccion = @fecha, Descripcion = @descripcion " +
+                             "WHERE Id = @idTransaccion AND UsuarioId = @usuarioId";
+
+        using var command = new MySqlCommand(query, connection);
+        command.Parameters.AddWithValue("@tipo", tipo);
+        command.Parameters.AddWithValue("@categoria", categoria);
+        command.Parameters.AddWithValue("@importe", importe);
+        command.Parameters.AddWithValue("@fecha", fecha.Date);
+        command.Parameters.AddWithValue("@descripcion", descripcion);
+        command.Parameters.AddWithValue("@idTransaccion", transactionId);
+        command.Parameters.AddWithValue("@usuarioId", userId);
+
+        return command.ExecuteNonQuery() > 0;
+    }
 }

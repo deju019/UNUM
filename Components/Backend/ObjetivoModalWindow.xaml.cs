@@ -1,50 +1,106 @@
-using MySql.Data.MySqlClient;
 using System;
 using System.Windows;
 using System.Windows.Controls;
-using UNUM.Infrastructure;
+using UNUM.Models;
+using UNUM.Services;
 
 namespace UNUM
 {
     public partial class ObjetivoModalWindow : Window
     {
-        private int _usuarioId;
+        private readonly int _usuarioId;
+        private readonly int? _objectiveId;
+        private readonly ObjectiveService _objectiveService = new();
 
-        public ObjetivoModalWindow(int usuarioId)
+        public ObjetivoModalWindow(int usuarioId, ObjectiveItemModel? objective = null)
         {
             InitializeComponent();
             _usuarioId = usuarioId;
+
+            if (objective is null)
+            {
+                return;
+            }
+
+            _objectiveId = objective.Id;
+            txtNombre.Text = objective.Nombre;
+            txtCoste.Text = objective.CosteTotal.ToString("0.##");
+            txtAhorro.Text = objective.AhorroActual.ToString("0.##");
+            SetPrioridad(objective.Prioridad);
+            Title = "Editar Objetivo";
+            btnGuardar.Content = "Guardar cambios";
         }
 
         private void btnGuardar_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtNombre.Text) || !decimal.TryParse(txtCoste.Text, out decimal coste) || !decimal.TryParse(txtAhorro.Text, out decimal ahorro))
+            var nombre = txtNombre.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(nombre) || !decimal.TryParse(txtCoste.Text, out var coste) || !decimal.TryParse(txtAhorro.Text, out var ahorro))
             {
                 MessageBox.Show("Rellena todos los campos con valores numéricos válidos.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            int prioridad = Convert.ToInt32(((ComboBoxItem)cmbPrioridad.SelectedItem).Tag);
+            if (coste <= 0)
+            {
+                MessageBox.Show("El coste total debe ser mayor que cero.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
 
-            using MySqlConnection conn = DbConnectionFactory.CreateOpenConnection();
+            if (ahorro < 0)
+            {
+                MessageBox.Show("El ahorro actual no puede ser negativo.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (cmbPrioridad.SelectedItem is not ComboBoxItem prioridadItem || !int.TryParse(prioridadItem.Tag?.ToString(), out var prioridad))
+            {
+                MessageBox.Show("Selecciona una prioridad válida.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             try
             {
-                string query = "INSERT INTO Objetivos (UsuarioId, Nombre, CosteTotal, AhorroActual, Prioridad) VALUES (@uId, @nom, @coste, @ahorro, @prio)";
-                using (MySqlCommand cmd = new MySqlCommand(query, conn))
+                if (_objectiveId.HasValue)
                 {
-                    cmd.Parameters.AddWithValue("@uId", _usuarioId);
-                    cmd.Parameters.AddWithValue("@nom", txtNombre.Text);
-                    cmd.Parameters.AddWithValue("@coste", coste);
-                    cmd.Parameters.AddWithValue("@ahorro", ahorro);
-                    cmd.Parameters.AddWithValue("@prio", prioridad);
-                    cmd.ExecuteNonQuery();
+                    _objectiveService.UpdateObjective(_objectiveId.Value, _usuarioId, nombre, coste, ahorro, prioridad);
+                }
+                else
+                {
+                    _objectiveService.AddObjective(_usuarioId, nombre, coste, prioridad, ahorro);
                 }
 
-                this.DialogResult = true; // Cierra el modal e indica éxito al Dashboard
+                DialogResult = true;
+                Close();
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Error al guardar: " + ex.Message);
+            }
+        }
+
+        private void btnCancelar_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
+            Close();
+        }
+
+        private void SetPrioridad(int prioridad)
+        {
+            foreach (var item in cmbPrioridad.Items)
+            {
+                if (item is not ComboBoxItem comboItem)
+                {
+                    continue;
+                }
+
+                var isMatch = int.TryParse(comboItem.Tag?.ToString(), out var value) && value == prioridad;
+                comboItem.IsSelected = isMatch;
+                if (isMatch)
+                {
+                    cmbPrioridad.SelectedItem = comboItem;
+                    return;
+                }
             }
         }
     }

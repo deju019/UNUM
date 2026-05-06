@@ -14,10 +14,9 @@ public static class PasswordHasher
             return false;
         }
 
-        // Compatibilidad temporal: permite login de usuarios legacy con password en texto plano.
         if (!IsBcryptHash(storedValue))
         {
-            return string.Equals(plainPassword, storedValue, StringComparison.Ordinal);
+            return false;
         }
 
         return BCrypt.Net.BCrypt.Verify(plainPassword, storedValue);

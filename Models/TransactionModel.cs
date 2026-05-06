@@ -25,6 +25,55 @@ public class FinancialSummaryModel
 }
 
 /// <summary>
+/// Resumen del mes actual para analítica rápida.
+/// </summary>
+public class MonthlyAnalyticsModel
+{
+    public decimal IngresosMes { get; set; }
+    public decimal GastosMes { get; set; }
+    public decimal BalanceMes { get; set; }
+}
+
+/// <summary>
+/// Proyección simple al cierre del mes actual.
+/// </summary>
+public class MonthlyProjectionModel
+{
+    public decimal IngresosProyectados { get; set; }
+    public decimal GastosProyectados { get; set; }
+    public decimal BalanceProyectado { get; set; }
+    public decimal BalanceMesAnterior { get; set; }
+    public decimal VariacionVsMesAnterior { get; set; }
+    public bool TieneAlertaDeficit => BalanceProyectado < 0;
+    public string AlertaDeficit { get; set; } = string.Empty;
+    public string ResumenEscenario { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Badge visual para indicar el nivel de riesgo financiero.
+/// </summary>
+public class MonthlyRiskBadgeModel
+{
+    public string Nivel { get; set; } = string.Empty;
+    public string Descripcion { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+    public string BackgroundHex { get; set; } = "#E9ECEF";
+    public string BorderHex { get; set; } = "#CED4DA";
+    public string ForegroundHex { get; set; } = "#6C757D";
+}
+
+/// <summary>
+/// Métrica de gasto por categoría para el mes actual.
+/// </summary>
+public class CategoryAnalyticsModel
+{
+    public string Categoria { get; set; } = string.Empty;
+    public decimal Total { get; set; }
+    public decimal Porcentaje { get; set; }
+    public string Resumen { get; set; } = string.Empty;
+}
+
+/// <summary>
 /// Representa un presupuesto de categoría.
 /// </summary>
 public class BudgetCategoryModel

@@ -1,10 +1,12 @@
 namespace UNUM.Services;
 
+using UNUM.Models;
+
 public class WindowDialogService : IWindowDialogService
 {
-    public bool? ShowObjectiveModal(int usuarioId)
+    public bool? ShowObjectiveModal(int usuarioId, ObjectiveItemModel? objective = null)
     {
-        var modal = new ObjetivoModalWindow(usuarioId);
+        var modal = new ObjetivoModalWindow(usuarioId, objective);
         return modal.ShowDialog();
     }
 

@@ -15,17 +15,39 @@ public class AuthService
         using var command = new MySqlCommand(query, connection);
         command.Parameters.AddWithValue("@user", username);
 
+        int userId;
+        string storedPassword;
+
         using var reader = command.ExecuteReader();
         if (!reader.Read())
         {
             return null;
         }
 
-        var userId = reader.GetInt32("Id");
-        var storedPassword = reader.GetString("PasswordValue");
-        var validCredentials = PasswordHasher.Verify(plainPassword, storedPassword);
+        userId = reader.GetInt32("Id");
+        storedPassword = reader.GetString("PasswordValue");
 
-        return validCredentials ? userId : null;
+        if (PasswordHasher.IsBcryptHash(storedPassword))
+        {
+            return PasswordHasher.Verify(plainPassword, storedPassword) ? userId : null;
+        }
+
+        // Compatibilidad controlada: valida una sola vez credenciales legacy y migra a hash.
+        if (!string.Equals(plainPassword, storedPassword, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        reader.Close();
+
+        var upgradedHash = PasswordHasher.Hash(plainPassword);
+        var updateQuery = $"UPDATE Usuarios SET `{passwordColumn}` = @pass WHERE Id = @id";
+        using var updateCommand = new MySqlCommand(updateQuery, connection);
+        updateCommand.Parameters.AddWithValue("@pass", upgradedHash);
+        updateCommand.Parameters.AddWithValue("@id", userId);
+        updateCommand.ExecuteNonQuery();
+
+        return userId;
     }
 
     public int RegisterUser(string username, string plainPassword)

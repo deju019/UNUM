@@ -34,6 +34,10 @@ public class MainWindowViewModel : ViewModelBase
 
     // Estado financiero
     private FinancialSummaryModel _financialSummary = new();
+    private MonthlyAnalyticsModel _monthlyAnalytics = new();
+    private MonthlyProjectionModel _monthlyProjection = new();
+    private ObservableCollection<MonthlyRiskBadgeModel> _riskBadges = new();
+    private ObservableCollection<CategoryAnalyticsModel> _topCategoriasGasto = new();
 
     // Presupuestos
     private Dictionary<string, decimal> _presupuestosCategorias = new(StringComparer.OrdinalIgnoreCase);
@@ -49,6 +53,7 @@ public class MainWindowViewModel : ViewModelBase
 
     // Filtros y resultados
     private bool _restaurandoEstadoFiltros;
+    private bool _filtrosAvanzadosExpandidos;
     private string _filtroTipo = "Todos";
     private string _filtroPeriodo = "Historico";
     private string _filtroCategoria = "Todas";
@@ -65,12 +70,19 @@ public class MainWindowViewModel : ViewModelBase
     private string _categoriaTransaccion = string.Empty;
     private string _importeTransaccion = string.Empty;
     private string _descripcionTransaccion = string.Empty;
+    private DateTime _fechaTransaccion = DateTime.Today;
+    private bool _isEditingTransaccion;
+    private int _transaccionEnEdicionId;
+    private string _transactionFormTitle = "Registro de transacciones";
+    private string _transactionSubmitText = "Añadir";
     private ObservableCollection<string> _opcionesTipo = new();
     private ObservableCollection<string> _opcionesCategoria = new();
 
     // Presupuestos formulario
     private string _presupuestoCategoriaSeleccionada = string.Empty;
     private string _presupuestoLimiteMensual = string.Empty;
+    private string _presupuestoEnEdicionCategoria = string.Empty;
+    private bool _isEditingPresupuesto;
     private ObservableCollection<string> _opcionesPresupuestoCategoria = new();
 
     // Filtros opciones
@@ -80,15 +92,23 @@ public class MainWindowViewModel : ViewModelBase
 
     // Comandos
     private ICommand? _guardarTransaccionCommand;
+    private ICommand? _editarTransaccionCommand;
+    private ICommand? _cancelarEdicionTransaccionCommand;
     private ICommand? _cerrarSesionCommand;
     private ICommand? _borrarTransaccionCommand;
     private ICommand? _refrescarCommand;
     private ICommand? _aplicarFiltrosCommand;
     private ICommand? _limpiarFiltrosCommand;
+    private ICommand? _alternarFiltrosAvanzadosCommand;
     private ICommand? _exportarCsvCommand;
     private ICommand? _guardarPresupuestoCommand;
+    private ICommand? _editarPresupuestoCommand;
+    private ICommand? _cancelarEdicionPresupuestoCommand;
+    private ICommand? _eliminarPresupuestoCommand;
     private ICommand? _reiniciarPresupuestosCommand;
+    private ICommand? _soloMesActualCommand;
     private ICommand? _nuevoObjetivoCommand;
+    private ICommand? _editarObjetivoCommand;
     private ICommand? _borrarObjetivoCommand;
     private ICommand? _mostrarTransaccionesCommand;
     private ICommand? _mostrarSimuladorCommand;
@@ -97,6 +117,9 @@ public class MainWindowViewModel : ViewModelBase
 
     public event EventHandler? RequestClose;
     public event EventHandler<MainPanelType>? RequestPanelNavigation;
+    public event EventHandler? TransactionSaved;
+    public event EventHandler? TransactionsLoaded;
+    public event EventHandler? TransactionDeleted;
 
     public MainWindowViewModel(int usuarioId, IWindowDialogService windowDialogService)
     {
@@ -133,6 +156,30 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _financialSummary;
         set => SetProperty(ref _financialSummary, value);
+    }
+
+    public MonthlyAnalyticsModel MonthlyAnalytics
+    {
+        get => _monthlyAnalytics;
+        set => SetProperty(ref _monthlyAnalytics, value);
+    }
+
+    public MonthlyProjectionModel MonthlyProjection
+    {
+        get => _monthlyProjection;
+        set => SetProperty(ref _monthlyProjection, value);
+    }
+
+    public ObservableCollection<MonthlyRiskBadgeModel> RiskBadges
+    {
+        get => _riskBadges;
+        set => SetProperty(ref _riskBadges, value);
+    }
+
+    public ObservableCollection<CategoryAnalyticsModel> TopCategoriasGasto
+    {
+        get => _topCategoriasGasto;
+        set => SetProperty(ref _topCategoriasGasto, value);
     }
 
     public ObservableCollection<BudgetCategoryModel> PresupuestosUI
@@ -207,6 +254,36 @@ public class MainWindowViewModel : ViewModelBase
         set => SetProperty(ref _descripcionTransaccion, value);
     }
 
+    public DateTime FechaTransaccion
+    {
+        get => _fechaTransaccion;
+        set => SetProperty(ref _fechaTransaccion, value);
+    }
+
+    public bool IsEditingTransaccion
+    {
+        get => _isEditingTransaccion;
+        set => SetProperty(ref _isEditingTransaccion, value);
+    }
+
+    public int TransaccionEnEdicionId
+    {
+        get => _transaccionEnEdicionId;
+        set => SetProperty(ref _transaccionEnEdicionId, value);
+    }
+
+    public string TransactionFormTitle
+    {
+        get => _transactionFormTitle;
+        set => SetProperty(ref _transactionFormTitle, value);
+    }
+
+    public string TransactionSubmitText
+    {
+        get => _transactionSubmitText;
+        set => SetProperty(ref _transactionSubmitText, value);
+    }
+
     public ObservableCollection<string> OpcionesTipo
     {
         get => _opcionesTipo;
@@ -229,6 +306,12 @@ public class MainWindowViewModel : ViewModelBase
                 ActualizarCategoriasFiltro();
             }
         }
+    }
+
+    public bool FiltrosAvanzadosExpandidos
+    {
+        get => _filtrosAvanzadosExpandidos;
+        set => SetProperty(ref _filtrosAvanzadosExpandidos, value);
     }
 
     public string FiltroPeriodo
@@ -321,6 +404,29 @@ public class MainWindowViewModel : ViewModelBase
         set => SetProperty(ref _opcionesPresupuestoCategoria, value);
     }
 
+    public bool IsEditingPresupuesto
+    {
+        get => _isEditingPresupuesto;
+        set
+        {
+            if (SetProperty(ref _isEditingPresupuesto, value))
+            {
+                OnPropertyChanged(nameof(PresupuestoFormTitle));
+                OnPropertyChanged(nameof(PresupuestoSaveText));
+            }
+        }
+    }
+
+    public string PresupuestoEnEdicionCategoria
+    {
+        get => _presupuestoEnEdicionCategoria;
+        set => SetProperty(ref _presupuestoEnEdicionCategoria, value);
+    }
+
+    public string PresupuestoFormTitle => IsEditingPresupuesto ? "Editar presupuesto" : "Presupuestos mensuales por categoría";
+
+    public string PresupuestoSaveText => IsEditingPresupuesto ? "Actualizar" : "Guardar";
+
     #endregion
 
     #region Comandos
@@ -328,6 +434,10 @@ public class MainWindowViewModel : ViewModelBase
     public ICommand CerrarSesionCommand => _cerrarSesionCommand ??= new RelayCommand(_ => CerrarSesion());
 
     public ICommand GuardarTransaccionCommand => _guardarTransaccionCommand ??= new RelayCommand(_ => GuardarTransaccion());
+
+    public ICommand EditarTransaccionCommand => _editarTransaccionCommand ??= new RelayCommand(p => EditarTransaccion(p));
+
+    public ICommand CancelarEdicionTransaccionCommand => _cancelarEdicionTransaccionCommand ??= new RelayCommand(_ => CancelarEdicionTransaccion());
 
     public ICommand BorrarTransaccionCommand => _borrarTransaccionCommand ??= new RelayCommand(p => BorrarTransaccion(p));
 
@@ -337,13 +447,25 @@ public class MainWindowViewModel : ViewModelBase
 
     public ICommand LimpiarFiltrosCommand => _limpiarFiltrosCommand ??= new RelayCommand(_ => LimpiarFiltros());
 
+    public ICommand AlternarFiltrosAvanzadosCommand => _alternarFiltrosAvanzadosCommand ??= new RelayCommand(_ => FiltrosAvanzadosExpandidos = !FiltrosAvanzadosExpandidos);
+
     public ICommand ExportarCsvCommand => _exportarCsvCommand ??= new RelayCommand(_ => ExportarCsv());
 
     public ICommand GuardarPresupuestoCommand => _guardarPresupuestoCommand ??= new RelayCommand(_ => GuardarPresupuesto());
 
+    public ICommand EditarPresupuestoCommand => _editarPresupuestoCommand ??= new RelayCommand(p => EditarPresupuesto(p));
+
+    public ICommand CancelarEdicionPresupuestoCommand => _cancelarEdicionPresupuestoCommand ??= new RelayCommand(_ => CancelarEdicionPresupuesto());
+
+    public ICommand EliminarPresupuestoCommand => _eliminarPresupuestoCommand ??= new RelayCommand(p => EliminarPresupuesto(p));
+
     public ICommand ReiniciarPresupuestosCommand => _reiniciarPresupuestosCommand ??= new RelayCommand(_ => ReiniciarPresupuestos());
 
+    public ICommand SoloMesActualCommand => _soloMesActualCommand ??= new RelayCommand(_ => SoloMesActual());
+
     public ICommand NuevoObjetivoCommand => _nuevoObjetivoCommand ??= new RelayCommand(_ => NuevoObjetivo());
+
+    public ICommand EditarObjetivoCommand => _editarObjetivoCommand ??= new RelayCommand(_ => EditarObjetivo());
 
     public ICommand BorrarObjetivoCommand => _borrarObjetivoCommand ??= new RelayCommand(_ => BorrarObjetivo());
 
@@ -371,6 +493,7 @@ public class MainWindowViewModel : ViewModelBase
             _transacciones = await Task.Run(() => _transactionService.GetUserTransactions(_usuarioId));
             AplicarFiltros();
             ActualizarPanelPresupuestos();
+            TransactionsLoaded?.Invoke(this, EventArgs.Empty);
         }
         catch (Exception ex)
         {
@@ -574,12 +697,29 @@ public class MainWindowViewModel : ViewModelBase
 
         try
         {
-            _transactionService.AddTransaction(_usuarioId, TipoTransaccion, CategoriaTransaccion, importe, DateTime.Now.Date, DescripcionTransaccion);
+            if (IsEditingTransaccion)
+            {
+                var updated = _transactionService.UpdateTransaction(TransaccionEnEdicionId, _usuarioId, TipoTransaccion, CategoriaTransaccion, importe, FechaTransaccion, DescripcionTransaccion);
+                if (!updated)
+                {
+                    System.Windows.MessageBox.Show("No se pudo actualizar la transacción seleccionada.", "Fallo Crítico");
+                    return;
+                }
 
-            System.Windows.MessageBox.Show("Transacción registrada con éxito.", "Operación Completada");
+                System.Windows.MessageBox.Show("Transacción actualizada con éxito.", "Operación Completada");
+                CancelarEdicionTransaccion();
+            }
+            else
+            {
+                _transactionService.AddTransaction(_usuarioId, TipoTransaccion, CategoriaTransaccion, importe, FechaTransaccion, DescripcionTransaccion);
 
-            ImporteTransaccion = string.Empty;
-            DescripcionTransaccion = string.Empty;
+                System.Windows.MessageBox.Show("Transacción registrada con éxito.", "Operación Completada");
+                TransactionSaved?.Invoke(this, EventArgs.Empty);
+
+                ImporteTransaccion = string.Empty;
+                DescripcionTransaccion = string.Empty;
+                FechaTransaccion = DateTime.Today;
+            }
 
             _ = CargarHistorialAsync();
         }
@@ -587,6 +727,40 @@ public class MainWindowViewModel : ViewModelBase
         {
             System.Windows.MessageBox.Show($"Error al guardar la transacción: {ex.Message}", "Fallo Crítico");
         }
+    }
+
+    private void EditarTransaccion(object? param)
+    {
+        if (param is not DataRowView filaSeleccionada)
+        {
+            System.Windows.MessageBox.Show("Por favor, selecciona una transacción de la tabla para editarla.", "Aviso");
+            return;
+        }
+
+        TransaccionEnEdicionId = Convert.ToInt32(filaSeleccionada["Id"]);
+        TipoTransaccion = filaSeleccionada["Tipo"]?.ToString() ?? "Gasto";
+        CategoriaTransaccion = filaSeleccionada["Categoria"]?.ToString() ?? string.Empty;
+        ImporteTransaccion = filaSeleccionada["Importe"] == DBNull.Value ? string.Empty : Convert.ToDecimal(filaSeleccionada["Importe"]).ToString(CultureInfo.CurrentCulture);
+        DescripcionTransaccion = filaSeleccionada["Descripcion"]?.ToString() ?? string.Empty;
+        FechaTransaccion = filaSeleccionada["Fecha"] == DBNull.Value ? DateTime.Today : Convert.ToDateTime(filaSeleccionada["Fecha"]);
+
+        IsEditingTransaccion = true;
+        TransactionFormTitle = "Editar transacción";
+        TransactionSubmitText = "Guardar cambios";
+    }
+
+    private void CancelarEdicionTransaccion()
+    {
+        IsEditingTransaccion = false;
+        TransaccionEnEdicionId = 0;
+        TransactionFormTitle = "Registro de transacciones";
+        TransactionSubmitText = "Añadir";
+        TipoTransaccion = "Gasto";
+        CategoriaTransaccion = string.Empty;
+        ImporteTransaccion = string.Empty;
+        DescripcionTransaccion = string.Empty;
+        FechaTransaccion = DateTime.Today;
+        ActualizarCategoriasPorTipo();
     }
 
     private void CerrarSesion()
@@ -624,6 +798,7 @@ public class MainWindowViewModel : ViewModelBase
             bool deleted = _transactionService.DeleteTransaction(idTransaccion, _usuarioId);
             if (deleted)
             {
+                TransactionDeleted?.Invoke(this, EventArgs.Empty);
                 _ = CargarHistorialAsync();
             }
         }
@@ -644,6 +819,7 @@ public class MainWindowViewModel : ViewModelBase
         {
             TransaccionesView = _transacciones.DefaultView;
             ActualizarResumenFinanciero(_transacciones);
+            ActualizarAnaliticaMensual(_transacciones);
             ActualizarIndicadoresFiltrosActivos();
             return;
         }
@@ -717,6 +893,7 @@ public class MainWindowViewModel : ViewModelBase
 
         TransaccionesView = vista;
         ActualizarResumenFinanciero(_transacciones);
+        ActualizarAnaliticaMensual(_transacciones);
         ActualizarIndicadoresFiltrosActivos();
 
         if (!_restaurandoEstadoFiltros)
@@ -801,10 +978,50 @@ public class MainWindowViewModel : ViewModelBase
             return;
         }
 
+        if (IsEditingPresupuesto && !string.IsNullOrWhiteSpace(PresupuestoEnEdicionCategoria) &&
+            !string.Equals(PresupuestoEnEdicionCategoria, PresupuestoCategoriaSeleccionada, StringComparison.OrdinalIgnoreCase))
+        {
+            _presupuestosCategorias.Remove(PresupuestoEnEdicionCategoria);
+        }
+
         _presupuestosCategorias[PresupuestoCategoriaSeleccionada] = limite;
         GuardarPresupuestosCategorias();
         ActualizarPanelPresupuestos();
         PresupuestoLimiteMensual = string.Empty;
+        CancelarEdicionPresupuesto();
+    }
+
+    private void EditarPresupuesto(object? parameter)
+    {
+        if (parameter is not BudgetCategoryModel presupuesto)
+        {
+            System.Windows.MessageBox.Show("Selecciona un presupuesto para editar.", "Presupuestos");
+            return;
+        }
+
+        PresupuestoEnEdicionCategoria = presupuesto.Categoria;
+        PresupuestoCategoriaSeleccionada = presupuesto.Categoria;
+        PresupuestoLimiteMensual = presupuesto.Limite > 0
+            ? presupuesto.Limite.ToString(CultureInfo.CurrentCulture)
+            : string.Empty;
+        IsEditingPresupuesto = true;
+    }
+
+    private void CancelarEdicionPresupuesto()
+    {
+        PresupuestoEnEdicionCategoria = string.Empty;
+        IsEditingPresupuesto = false;
+        PresupuestoLimiteMensual = string.Empty;
+        if (OpcionesPresupuestoCategoria.Count > 0)
+        {
+            PresupuestoCategoriaSeleccionada = OpcionesPresupuestoCategoria[0];
+        }
+    }
+
+    private void SoloMesActual()
+    {
+        FiltroPeriodo = "Mes actual";
+        AplicarFiltros();
     }
 
     private void ReiniciarPresupuestos()
@@ -819,9 +1036,41 @@ public class MainWindowViewModel : ViewModelBase
         ActualizarPanelPresupuestos();
     }
 
+    private void EliminarPresupuesto(object? parameter)
+    {
+        if (parameter is not BudgetCategoryModel presupuesto)
+        {
+            return;
+        }
+
+        if (System.Windows.MessageBox.Show($"¿Quieres borrar el presupuesto de '{presupuesto.Categoria}'?", "Eliminar presupuesto", System.Windows.MessageBoxButton.YesNo) != System.Windows.MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        _presupuestosCategorias.Remove(presupuesto.Categoria);
+        GuardarPresupuestosCategorias();
+        ActualizarPanelPresupuestos();
+    }
+
     private void NuevoObjetivo()
     {
         var result = _windowDialogService.ShowObjectiveModal(_usuarioId);
+        if (result == true)
+        {
+            CargarObjetivos();
+        }
+    }
+
+    private void EditarObjetivo()
+    {
+        if (ObjetivoSeleccionado is null)
+        {
+            MessageBox.Show("Selecciona un objetivo para editar.", "Objetivos", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        var result = _windowDialogService.ShowObjectiveModal(_usuarioId, ObjetivoSeleccionado);
         if (result == true)
         {
             CargarObjetivos();
@@ -965,6 +1214,187 @@ public class MainWindowViewModel : ViewModelBase
             TotalGastos = totalGastos,
             Saldo = saldo
         };
+    }
+
+    private void ActualizarAnaliticaMensual(DataTable transacciones)
+    {
+        var inicioMes = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+        var finMes = inicioMes.AddMonths(1);
+        var inicioMesAnterior = inicioMes.AddMonths(-1);
+        var finMesAnterior = inicioMes;
+        var diasTranscurridos = Math.Max(1, (DateTime.Today - inicioMes).Days + 1);
+        var diasTotales = DateTime.DaysInMonth(DateTime.Today.Year, DateTime.Today.Month);
+        var diasRestantes = Math.Max(0, diasTotales - diasTranscurridos);
+
+        decimal ingresosMes = 0m;
+        decimal gastosMes = 0m;
+        decimal balanceMesAnterior = 0m;
+        decimal ingresosMesAnterior = 0m;
+        decimal gastosMesAnterior = 0m;
+        var gastosPorCategoria = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (DataRow row in transacciones.Rows)
+        {
+            if (row["Tipo"] == DBNull.Value || row["Importe"] == DBNull.Value || row["Fecha"] == DBNull.Value)
+            {
+                continue;
+            }
+
+            var fecha = Convert.ToDateTime(row["Fecha"]);
+            if (fecha >= inicioMesAnterior && fecha < finMesAnterior)
+            {
+                var tipoAnterior = row["Tipo"]?.ToString() ?? string.Empty;
+                var importeAnterior = Convert.ToDecimal(row["Importe"]);
+
+                if (string.Equals(tipoAnterior, "Ingreso", StringComparison.OrdinalIgnoreCase))
+                {
+                    ingresosMesAnterior += importeAnterior;
+                    balanceMesAnterior += importeAnterior;
+                }
+                else if (string.Equals(tipoAnterior, "Gasto", StringComparison.OrdinalIgnoreCase))
+                {
+                    gastosMesAnterior += importeAnterior;
+                    balanceMesAnterior -= importeAnterior;
+                }
+            }
+
+            if (fecha < inicioMes || fecha >= finMes)
+            {
+                continue;
+            }
+
+            var tipo = row["Tipo"]?.ToString() ?? string.Empty;
+            var importe = Convert.ToDecimal(row["Importe"]);
+
+            if (string.Equals(tipo, "Ingreso", StringComparison.OrdinalIgnoreCase))
+            {
+                ingresosMes += importe;
+                continue;
+            }
+
+            if (string.Equals(tipo, "Gasto", StringComparison.OrdinalIgnoreCase))
+            {
+                gastosMes += importe;
+                var categoria = row["Categoria"]?.ToString() ?? "Otros";
+                gastosPorCategoria.TryGetValue(categoria, out var acumulado);
+                gastosPorCategoria[categoria] = acumulado + importe;
+            }
+        }
+
+        MonthlyAnalytics = new MonthlyAnalyticsModel
+        {
+            IngresosMes = ingresosMes,
+            GastosMes = gastosMes,
+            BalanceMes = ingresosMes - gastosMes
+        };
+
+        var promedioDiarioIngresos = ingresosMes / diasTranscurridos;
+        var promedioDiarioGastos = gastosMes / diasTranscurridos;
+
+        var ingresosProyectados = decimal.Round(promedioDiarioIngresos * diasTotales, 2);
+        var gastosProyectados = decimal.Round(promedioDiarioGastos * diasTotales, 2);
+        var balanceProyectado = ingresosProyectados - gastosProyectados;
+        var variacionVsMesAnterior = balanceProyectado - balanceMesAnterior;
+
+        var escenario = balanceProyectado switch
+        {
+            > 0 => $"Cierre estimado con superávit de {balanceProyectado:0.00} €.",
+            < 0 => $"Cierre estimado con déficit de {Math.Abs(balanceProyectado):0.00} €.",
+            _ => "Cierre estimado en equilibrio."
+        };
+
+        MonthlyProjection = new MonthlyProjectionModel
+        {
+            IngresosProyectados = ingresosProyectados,
+            GastosProyectados = gastosProyectados,
+            BalanceProyectado = balanceProyectado,
+            BalanceMesAnterior = balanceMesAnterior,
+            VariacionVsMesAnterior = variacionVsMesAnterior,
+            AlertaDeficit = balanceProyectado < 0
+                ? $"Atención: la proyección actual anticipa un déficit de {Math.Abs(balanceProyectado):0.00} €."
+                : string.Empty,
+            ResumenEscenario = $"Ritmo actual: {diasTranscurridos}/{diasTotales} días. Faltan {diasRestantes} días. {escenario}"
+        };
+
+        ActualizarBadgesRiesgo(balanceProyectado, ingresosProyectados, gastosProyectados, variacionVsMesAnterior);
+
+        TopCategoriasGasto.Clear();
+        var totalGastoMes = gastosPorCategoria.Values.Sum();
+
+        foreach (var item in gastosPorCategoria
+                     .OrderByDescending(x => x.Value)
+                     .Take(3))
+        {
+            var porcentaje = totalGastoMes > 0
+                ? decimal.Round((item.Value / totalGastoMes) * 100m, 1)
+                : 0m;
+
+            TopCategoriasGasto.Add(new CategoryAnalyticsModel
+            {
+                Categoria = item.Key,
+                Total = item.Value,
+                Porcentaje = porcentaje,
+                Resumen = $"{item.Value:0.00} € · {porcentaje:0.#}%"
+            });
+        }
+
+        if (TopCategoriasGasto.Count == 0)
+        {
+            TopCategoriasGasto.Add(new CategoryAnalyticsModel
+            {
+                Categoria = "Sin gastos este mes",
+                Total = 0m,
+                Porcentaje = 0m,
+                Resumen = "Aún no hay datos para analizar"
+            });
+        }
+    }
+
+    private void ActualizarBadgesRiesgo(decimal balanceProyectado, decimal ingresosProyectados, decimal gastosProyectados, decimal variacionVsMesAnterior)
+    {
+        var nivel = DeterminarNivelRiesgo(balanceProyectado, ingresosProyectados, gastosProyectados, variacionVsMesAnterior);
+
+        var badges = new[]
+        {
+            CrearBadge("Bajo", "Riesgo controlado", nivel == "Bajo", "#D1E7DD", "#A3CFBB", "#0F5132"),
+            CrearBadge("Medio", "Vigila la evolución", nivel == "Medio", "#FFF3CD", "#FFDA6A", "#664D03"),
+            CrearBadge("Alto", "Posible déficit", nivel == "Alto", "#F8D7DA", "#F1AEB5", "#842029")
+        };
+
+        RiskBadges.Clear();
+        foreach (var badge in badges)
+        {
+            RiskBadges.Add(badge);
+        }
+    }
+
+    private static MonthlyRiskBadgeModel CrearBadge(string nivel, string descripcion, bool activo, string backgroundHex, string borderHex, string foregroundHex)
+    {
+        return new MonthlyRiskBadgeModel
+        {
+            Nivel = nivel,
+            Descripcion = descripcion,
+            IsActive = activo,
+            BackgroundHex = activo ? backgroundHex : "#F8F9FA",
+            BorderHex = activo ? borderHex : "#DEE2E6",
+            ForegroundHex = activo ? foregroundHex : "#6C757D"
+        };
+    }
+
+    private static string DeterminarNivelRiesgo(decimal balanceProyectado, decimal ingresosProyectados, decimal gastosProyectados, decimal variacionVsMesAnterior)
+    {
+        if (balanceProyectado < 0m || gastosProyectados > ingresosProyectados)
+        {
+            return "Alto";
+        }
+
+        var margenSeguro = ingresosProyectados * 0.1m;
+        if (balanceProyectado <= margenSeguro || variacionVsMesAnterior < 0m)
+        {
+            return "Medio";
+        }
+
+        return "Bajo";
     }
 
     private void ActualizarIndicadoresFiltrosActivos()

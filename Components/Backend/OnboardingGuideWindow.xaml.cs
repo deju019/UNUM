@@ -9,7 +9,11 @@ namespace UNUM
         MostrarHistorial = 2,
         ExplicarAcciones = 3,
         PedirBorrar = 4,
-        Completado = 5
+        MostrarFiltros = 5,
+        MostrarPresupuestos = 6,
+        MostrarObjetivos = 7,
+        ExplicarSaldo = 8,
+        Completado = 9
     }
 
     public partial class OnboardingGuideWindow : Window
@@ -37,19 +41,23 @@ namespace UNUM
         {
             var (paso, titulo) = _pasoActual switch
             {
-                TutorialPaso.ExplicarRegistro => (1, "Registra tu primer gasto o ahorro\n\nHaz clic en 'Tipo' y selecciona si es Ingreso o Gasto, luego completa los demás campos y presiona 'Añadir'."),
-                TutorialPaso.EsperarAñadir => (2, "Espera a que registres una transacción...\n\n(Haz clic en 'Añadir' para continuar)"),
-                TutorialPaso.MostrarHistorial => (3, "¡Perfecto! Tu transacción aparece aquí\n\nEl historial muestra todas tus operaciones. Puedes exportar a CSV o eliminar filas individual."),
-                TutorialPaso.ExplicarAcciones => (4, "Acciones disponibles:\n\n📥 Exportar: Descarga datos como CSV\n🗑️ Eliminar: Borra la fila seleccionada"),
-                TutorialPaso.PedirBorrar => (5, "Última parte: Haz clic en la fila que acabas de crear y presiona 'Eliminar Seleccionada'"),
-                _ => (0, "Tutorial completado. ¡Listo para usar UNUM!")
+                TutorialPaso.ExplicarRegistro => (1, "Primero: registra una transacción\n\nEl formulario de arriba te permite elegir tipo, categoría, importe, descripción y fecha. Al pulsar 'Añadir' se guarda el movimiento."),
+                TutorialPaso.EsperarAñadir => (2, "Haz una prueba con una transacción\n\nCuando pulses 'Añadir', el tutorial avanzará solo al siguiente paso."),
+                TutorialPaso.MostrarHistorial => (3, "Aquí aparece el historial\n\nLa app baja sola a esta zona para enseñarte dónde ver lo que acabas de crear. Desde aquí puedes exportar y revisar todo."),
+                TutorialPaso.ExplicarAcciones => (4, "Acciones rápidas\n\nExporta a CSV, borra la transacción marcada o edítala. Los botones están pensados para trabajar sobre la fila seleccionada."),
+                TutorialPaso.PedirBorrar => (5, "Prueba la eliminación\n\nSelecciona una fila y pulsa 'Eliminar Seleccionada' para ver cómo funciona el borrado con confirmación."),
+                TutorialPaso.MostrarFiltros => (6, "Filtros de búsqueda\n\nLa vista baja a esta parte para mostrarte cómo filtrar por tipo, categoría, período, texto y, si lo necesitas, filtros avanzados."),
+                TutorialPaso.MostrarPresupuestos => (7, "Presupuestos mensuales\n\nAquí defines un límite por categoría, editas presupuestos existentes y eliminas uno individual sin tocar los demás."),
+                TutorialPaso.MostrarObjetivos => (8, "Objetivos de ahorro\n\nCambia al panel de objetivos para crear metas, editar su progreso y seguir cuánto te falta para cumplir cada una."),
+                TutorialPaso.ExplicarSaldo => (9, "Saldo y resumen\n\nMira el saldo actual en la barra lateral. Si baja de cero, la app lo pinta en rojo para avisarte de inmediato."),
+                _ => (0, "Tutorial completado. Ya conoces las partes principales de UNUM.")
             };
 
-            txtPaso.Text = $"{paso}/5";
+            txtPaso.Text = $"{paso}/9";
             txtGuiaTexto.Text = titulo;
             btnSiguiente.Content = _pasoActual == TutorialPaso.Completado ? "Cerrar" : "Siguiente →";
 
-            // Desabilitar botón en pasos automáticos
+            // Deshabilitar botón en pasos automáticos
             btnSiguiente.IsEnabled = _pasoActual != TutorialPaso.EsperarAñadir && _pasoActual != TutorialPaso.PedirBorrar;
         }
 

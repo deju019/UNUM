@@ -15,6 +15,7 @@
         <local:PercentageToBrushConverter x:Key="PercentageToBrushConverter"/>
         <local:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <local:MenuActiveBackgroundConverter x:Key="MenuActiveBackgroundConverter"/>
+        <local:DecimalSaldoToBrushConverter x:Key="DecimalSaldoToBrushConverter"/>
         <local:EmptyCollectionToVisibilityConverter x:Key="EmptyCollectionToVisibilityConverter"/>
     </Window.Resources>
     <Grid>
@@ -67,8 +68,20 @@
                         FontWeight="Bold"
                         BorderThickness="0"
                     ToolTip="Ir al panel de objetivos de ahorro"
-                        Margin="0,0,0,40"
+                        Margin="0,0,0,10"
                         Command="{Binding MostrarSimuladorCommand}"/>
+
+                <Button x:Name="btnTutorial"
+                        Content="❓ Tutorial"
+                        Height="35"
+                        Background="#FF9500"
+                        Foreground="White"
+                        FontSize="12"
+                        FontWeight="Bold"
+                        BorderThickness="0"
+                        ToolTip="Reabre el tutorial de bienvenida"
+                        Margin="0,0,0,40"
+                        Click="btnTutorial_Click"/>
 
                 <Border x:Name="borderSaldo"
                         Margin="15,0,15,0"
@@ -112,78 +125,116 @@
                 </Grid.RowDefinitions>
 
                 <Border x:Name="borderRegistroTransaccion" Grid.Row="0"
-                        Background="#FFF0F0F0"
-                        CornerRadius="5"
+                        Background="#FFF8FBFA"
+                        BorderBrush="#FFE3E7EB"
+                        BorderThickness="1"
+                        CornerRadius="6"
                         Padding="15"
                         Margin="0,0,0,20">
                     <StackPanel>
-                        <TextBlock Text="Registro de transacciones"
-                                   FontSize="15"
+                        <TextBlock Text="{Binding TransactionFormTitle}"
+                                   FontSize="16"
                                    FontWeight="Bold"
                                    Foreground="#FF2C3E50"
-                                   Margin="0,0,0,10"/>
+                                   Margin="0,0,0,15"/>
 
+                        <!-- Fila 1: Tipo, Categoría, Importe -->
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.2*"/>
+                                <ColumnDefinition Width="1.2*"/>
+                                <ColumnDefinition Width="1*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="Tipo" FontWeight="SemiBold" Margin="0,0,0,4" FontSize="12"/>
+                                <ComboBox x:Name="cmbTipo"
+                                          Height="32"
+                                          SelectedItem="{Binding TipoTransaccion, Mode=TwoWay}"
+                                          ItemsSource="{Binding OpcionesTipo}"
+                                          ToolTip="Selecciona si quieres registrar un ingreso o un gasto"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                <TextBlock Text="Categoría" FontWeight="SemiBold" Margin="0,0,0,4" FontSize="12"/>
+                                <ComboBox x:Name="cmbCategoria"
+                                          Height="32"
+                                          SelectedItem="{Binding CategoriaTransaccion, Mode=TwoWay}"
+                                          ItemsSource="{Binding OpcionesCategoria}"
+                                          ToolTip="Categoría asociada al tipo seleccionado"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Margin="0,0,10,0">
+                                <TextBlock Text="Importe (€)" FontWeight="SemiBold" Margin="0,0,0,4" FontSize="12"/>
+                                <TextBox x:Name="txtImporte"
+                                         Height="32"
+                                         Text="{Binding ImporteTransaccion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="Importe de la transacción. Ejemplo: 25,50"
+                                         Padding="8,6"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Text="Fecha" FontWeight="SemiBold" Margin="0,0,0,4" FontSize="12"/>
+                                <DatePicker x:Name="dpFechaTransaccion"
+                                            SelectedDate="{Binding FechaTransaccion, Mode=TwoWay}"
+                                            Height="32"
+                                            ToolTip="Fecha del movimiento"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Fila 2: Descripción (ancho completo) -->
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Descripción (opcional)" FontWeight="SemiBold" Margin="0,0,0,4" FontSize="12"/>
+                                <TextBox x:Name="txtDescripcion"
+                                         Height="32"
+                                         Text="{Binding DescripcionTransaccion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="Descripción para identificar mejor el movimiento"
+                                         Padding="8,6"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <!-- Fila 3: Información + Botones -->
                         <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="1.2*"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="Tipo"
-                                   Grid.Column="0"
-                                   FontWeight="Bold"/>
-                        <ComboBox x:Name="cmbTipo"
-                                  Grid.Column="0"
-                                  Margin="0,20,10,0"
-                                  Height="25"
-                                  SelectedItem="{Binding TipoTransaccion, Mode=TwoWay}"
-                                  ItemsSource="{Binding OpcionesTipo}"
-                                  ToolTip="Selecciona si quieres registrar un ingreso o un gasto"/>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
-                        <TextBlock Text="Categoría"
-                                   Grid.Column="1"
-                                   FontWeight="Bold"/>
-                        <ComboBox x:Name="cmbCategoria"
-                                  Grid.Column="1"
-                                  Margin="0,20,10,0"
-                                  SelectedItem="{Binding CategoriaTransaccion, Mode=TwoWay}"
-                                  ItemsSource="{Binding OpcionesCategoria}"
-                                  ToolTip="Categoría asociada al tipo seleccionado"
-                                  Height="25"/>
+                            <TextBlock Grid.Column="0"
+                                       VerticalAlignment="Center"
+                                       Foreground="#FF6C757D"
+                                       FontSize="11"
+                                       Text="En edición se actualiza la transacción seleccionada"/>
 
-                        <TextBlock Text="Importe (€)"
-                                   Grid.Column="2"
-                                   FontWeight="Bold"/>
-                        <TextBox x:Name="txtImporte"
-                                 Grid.Column="2"
-                                 Margin="0,20,10,0"
-                                 Text="{Binding ImporteTransaccion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 ToolTip="Importe de la transacción. Ejemplo: 25,50"
-                                 Height="25"/>
+                            <Button x:Name="btnGuardarTransaccion"
+                                    Grid.Column="1"
+                                    Content="{Binding TransactionSubmitText}"
+                                    Height="32"
+                                    Padding="16,0"
+                                    Margin="0,0,8,0"
+                                    Command="{Binding GuardarTransaccionCommand}"
+                                    Background="#FF28A745"
+                                    Foreground="White"
+                                    ToolTip="Guardar la transacción con los datos introducidos"
+                                    FontWeight="Bold"/>
 
-                        <TextBlock Text="Descripción"
-                                   Grid.Column="3"
-                                   FontWeight="Bold"/>
-                        <TextBox x:Name="txtDescripcion"
-                                 Grid.Column="3"
-                                 Margin="0,20,10,0"
-                                 Text="{Binding DescripcionTransaccion, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                 ToolTip="Descripción opcional para identificar mejor el movimiento"
-                                 Height="25"/>
-
-                        <Button x:Name="btnGuardarTransaccion"
-                                Content="Añadir"
-                                Grid.Column="4"
-                                Width="80"
-                                Height="25"
-                                Margin="0,20,0,0"
-                                Command="{Binding GuardarTransaccionCommand}"
-                                Background="#FF28A745"
-                                Foreground="White"
-                            ToolTip="Guardar la transacción con los datos introducidos"
-                                FontWeight="Bold"/>
+                            <Button x:Name="btnCancelarEdicionTransaccion"
+                                    Grid.Column="2"
+                                    Content="Cancelar"
+                                    Height="32"
+                                    Padding="16,0"
+                                    Command="{Binding CancelarEdicionTransaccionCommand}"
+                                    Visibility="{Binding IsEditingTransaccion, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                    Background="#FF6C757D"
+                                    Foreground="White"
+                                    FontWeight="Bold"/>
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -193,6 +244,7 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0"
@@ -256,13 +308,229 @@
                                            Text="{Binding FinancialSummary.Saldo, Converter={StaticResource DecimalToEuroConverter}}"
                                            FontSize="20"
                                            FontWeight="Bold"
-                                           Foreground="#FF1D4E89"/>
+                                           Foreground="{Binding FinancialSummary.Saldo, Converter={StaticResource DecimalSaldoToBrushConverter}}"/>
                             </StackPanel>
                         </Border>
                     </Grid>
+
+                    <Border Grid.Row="2"
+                            Background="#FFFDFDFD"
+                            BorderBrush="#FFE3E7EB"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="10"
+                            Margin="0,10,0,0">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0"
+                                           Text="Analítica del mes"
+                                           FontSize="15"
+                                           FontWeight="Bold"
+                                           Foreground="#FF2C3E50"/>
+
+                                <Button Grid.Column="1"
+                                        Content="Solo este mes"
+                                        Height="28"
+                                        Padding="12,0"
+                                        Command="{Binding SoloMesActualCommand}"
+                                        Background="#FF1D4E89"
+                                        Foreground="White"
+                                        FontWeight="Bold"
+                                        ToolTip="Filtra rápidamente la tabla para ver solo el mes actual"/>
+                            </Grid>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1.2*"/>
+                                    <ColumnDefinition Width="1.1*"/>
+                                    <ColumnDefinition Width="1.7*"/>
+                                </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="Mes actual"
+                                           FontSize="13"
+                                           FontWeight="Bold"
+                                           Foreground="#FF2C3E50"
+                                           Margin="0,0,0,8"/>
+                                <TextBlock Text="Ingresos"
+                                           FontSize="12"
+                                           Foreground="#FF5A6270"/>
+                                <TextBlock Text="{Binding MonthlyAnalytics.IngresosMes, Converter={StaticResource DecimalToEuroConverter}}"
+                                           FontWeight="Bold"
+                                           Foreground="#FF1E7E34"
+                                           Margin="0,0,0,6"/>
+
+                                <TextBlock Text="Gastos"
+                                           FontSize="12"
+                                           Foreground="#FF5A6270"/>
+                                <TextBlock Text="{Binding MonthlyAnalytics.GastosMes, Converter={StaticResource DecimalToEuroConverter}}"
+                                           FontWeight="Bold"
+                                           Foreground="#FFC0392B"
+                                           Margin="0,0,0,6"/>
+
+                                <TextBlock Text="Balance"
+                                           FontSize="12"
+                                           Foreground="#FF5A6270"/>
+                                <TextBlock Text="{Binding MonthlyAnalytics.BalanceMes, Converter={StaticResource DecimalToEuroConverter}}"
+                                           FontWeight="Bold"
+                                           Foreground="#FF1D4E89"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="0,0,10,0">
+                                <TextBlock Text="Proyección fin de mes"
+                                           FontSize="13"
+                                           FontWeight="Bold"
+                                           Foreground="#FF2C3E50"
+                                           Margin="0,0,0,8"/>
+                                <TextBlock Text="Ingresos proyectados"
+                                           FontSize="12"
+                                           Foreground="#FF5A6270"/>
+                                <TextBlock Text="{Binding MonthlyProjection.IngresosProyectados, Converter={StaticResource DecimalToEuroConverter}}"
+                                           FontWeight="Bold"
+                                           Foreground="#FF1E7E34"
+                                           Margin="0,0,0,6"/>
+
+                                <TextBlock Text="Gastos proyectados"
+                                           FontSize="12"
+                                           Foreground="#FF5A6270"/>
+                                <TextBlock Text="{Binding MonthlyProjection.GastosProyectados, Converter={StaticResource DecimalToEuroConverter}}"
+                                           FontWeight="Bold"
+                                           Foreground="#FFC0392B"
+                                           Margin="0,0,0,6"/>
+
+                                <TextBlock Text="Balance proyectado"
+                                           FontSize="12"
+                                           Foreground="#FF5A6270"/>
+                                <TextBlock Text="{Binding MonthlyProjection.BalanceProyectado, Converter={StaticResource DecimalToEuroConverter}}"
+                                           FontWeight="Bold"
+                                           Foreground="#FF1D4E89"/>
+
+                                <TextBlock Text="Mes anterior"
+                                           FontSize="12"
+                                           Foreground="#FF5A6270"
+                                           Margin="0,8,0,0"/>
+                                <TextBlock Text="{Binding MonthlyProjection.BalanceMesAnterior, Converter={StaticResource DecimalToEuroConverter}}"
+                                           FontWeight="Bold"
+                                           Foreground="#FF6C757D"/>
+
+                                <TextBlock Text="Variación vs. mes anterior"
+                                           FontSize="12"
+                                           Foreground="#FF5A6270"
+                                           Margin="0,8,0,0"/>
+                                <TextBlock Text="{Binding MonthlyProjection.VariacionVsMesAnterior, Converter={StaticResource DecimalToEuroConverter}}"
+                                           FontWeight="Bold"
+                                           Foreground="#FF8A1F2A"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Top categorías de gasto (mes)"
+                                           FontSize="13"
+                                           FontWeight="Bold"
+                                           Foreground="#FF2C3E50"
+                                           Margin="0,0,0,8"/>
+                                <TextBlock Text="{Binding MonthlyProjection.ResumenEscenario}"
+                                           FontSize="12"
+                                           Foreground="#FF5A6270"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,8"/>
+                                <Border Background="#FFFDECEC"
+                                        BorderBrush="#FFF5C2C7"
+                                        BorderThickness="1"
+                                        CornerRadius="5"
+                                        Padding="8"
+                                        Margin="0,0,0,8">
+                                    <TextBlock Text="{Binding MonthlyProjection.AlertaDeficit}"
+                                               Foreground="#FF8A1F2A"
+                                               FontSize="12"
+                                               TextWrapping="Wrap"/>
+                                </Border>
+                                <ItemsControl ItemsSource="{Binding RiskBadges}"
+                                              Margin="0,0,0,8">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{Binding BackgroundHex}"
+                                                    BorderBrush="{Binding BorderHex}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="14"
+                                                    Padding="10,6"
+                                                    Margin="0,0,8,8">
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Nivel}"
+                                                               Foreground="{Binding ForegroundHex}"
+                                                               FontWeight="Bold"
+                                                               FontSize="12"/>
+                                                    <TextBlock Text="{Binding Descripcion}"
+                                                               Foreground="{Binding ForegroundHex}"
+                                                               FontSize="11"
+                                                               TextWrapping="Wrap"
+                                                               MaxWidth="120"/>
+                                                </StackPanel>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <ItemsControl ItemsSource="{Binding TopCategoriasGasto}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="#FFF7F9FB"
+                                                    BorderBrush="#FFE3E7EB"
+                                                    BorderThickness="1"
+                                                    CornerRadius="5"
+                                                    Padding="8"
+                                                    Margin="0,0,0,6">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                    </Grid.RowDefinitions>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBlock Grid.Row="0"
+                                                               Grid.Column="0"
+                                                               Text="{Binding Categoria}"
+                                                               FontWeight="Bold"
+                                                               Foreground="#FF2C3E50"/>
+                                                    <TextBlock Grid.Row="0"
+                                                               Grid.Column="1"
+                                                               Text="{Binding Resumen}"
+                                                               Foreground="#FF5A6270"
+                                                               FontSize="12"
+                                                               Margin="8,0,0,0"/>
+                                                    <ProgressBar Grid.Row="1"
+                                                                 Grid.Column="0"
+                                                                 Grid.ColumnSpan="2"
+                                                                 Minimum="0"
+                                                                 Maximum="100"
+                                                                 Value="{Binding Porcentaje}"
+                                                                 Height="8"
+                                                                 Margin="0,6,0,0"
+                                                                 Foreground="{Binding Porcentaje, Converter={StaticResource PercentageToBrushConverter}}"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
                 </Grid>
 
-                <Border Grid.Row="2"
+                <Border x:Name="borderPresupuestos"
+                    Grid.Row="2"
                         Background="#FFF8FBF7"
                         BorderBrush="#FFDDE8D8"
                         BorderThickness="1"
@@ -277,7 +545,7 @@
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.Row="0"
-                                   Text="Presupuestos mensuales por categoría"
+                                   Text="{Binding PresupuestoFormTitle}"
                                    FontSize="15"
                                    FontWeight="Bold"
                                    Foreground="#FF2C3E50"
@@ -285,6 +553,7 @@
 
                         <Grid Grid.Row="1">
                             <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="Auto"/>
@@ -312,8 +581,8 @@
 
                             <Button x:Name="btnGuardarPresupuesto"
                                     Grid.Column="2"
-                                    Content="Guardar"
-                                    Width="90"
+                                    Content="{Binding PresupuestoSaveText}"
+                                    Padding="12,0"
                                     Height="28"
                                     Margin="0,20,10,0"
                                     Command="{Binding GuardarPresupuestoCommand}"
@@ -321,10 +590,32 @@
                                     Foreground="White"
                                     FontWeight="Bold"/>
 
-                            <Button x:Name="btnReiniciarPresupuestos"
+                            <Button x:Name="btnCancelarEdicionPresupuesto"
                                     Grid.Column="3"
+                                    Content="Cancelar"
+                                    Padding="12,0"
+                                    Height="28"
+                                    Margin="0,20,10,0"
+                                    Command="{Binding CancelarEdicionPresupuestoCommand}"
+                                    Background="#FF6C757D"
+                                    Foreground="White"
+                                    FontWeight="Bold">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsEditingPresupuesto}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+
+                            <Button x:Name="btnReiniciarPresupuestos"
+                                    Grid.Column="4"
                                     Content="Reset"
-                                    Width="80"
+                                    Padding="12,0"
                                     Height="28"
                                     Margin="0,20,0,0"
                                     Command="{Binding ReiniciarPresupuestosCommand}"
@@ -353,6 +644,8 @@
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
                                             <TextBlock Grid.Row="0"
@@ -368,9 +661,35 @@
                                                        FontSize="12"
                                                        Margin="8,0,0,0"/>
 
+                                            <Button Grid.Row="0"
+                                                    Grid.Column="2"
+                                                    Content="Editar"
+                                                    Height="24"
+                                                    Padding="10,0"
+                                                    Margin="8,0,0,0"
+                                                    Command="{Binding DataContext.EditarPresupuestoCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="#FF1D4E89"
+                                                    Foreground="White"
+                                                    FontWeight="Bold"/>
+
+                                            <Button Grid.Row="0"
+                                                    Grid.Column="3"
+                                                    Content="✕"
+                                                    Height="24"
+                                                    Width="24"
+                                                    Padding="0"
+                                                    Margin="8,0,0,0"
+                                                    Command="{Binding DataContext.EliminarPresupuestoCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Background="#FFDC3545"
+                                                    Foreground="White"
+                                                    FontWeight="Bold"
+                                                    ToolTip="Eliminar este presupuesto"/>
+
                                             <ProgressBar Grid.Row="1"
                                                          Grid.Column="0"
-                                                         Grid.ColumnSpan="2"
+                                                         Grid.ColumnSpan="3"
                                                          Minimum="0"
                                                          Maximum="100"
                                                          Value="{Binding Porcentaje}"
@@ -402,6 +721,7 @@
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0">
@@ -415,8 +735,20 @@
                                            Margin="0,2,0,0"/>
                             </StackPanel>
 
-                            <Button x:Name="btnRefrescar"
+                            <Button x:Name="btnAlternarFiltrosAvanzados"
                                     Grid.Column="1"
+                                    Content="📋 Avanzados"
+                                    Height="30"
+                                    Padding="12,0"
+                                    Margin="0,0,8,0"
+                                    Command="{Binding AlternarFiltrosAvanzadosCommand}"
+                                    Background="#FF6C757D"
+                                    Foreground="White"
+                                    ToolTip="Mostrar/ocultar filtros avanzados (fechas, importes)"
+                                    FontWeight="Bold"/>
+
+                            <Button x:Name="btnRefrescar"
+                                    Grid.Column="2"
                                     Content="↻ Actualizar"
                                     Height="30"
                                     Width="120"
@@ -471,7 +803,8 @@
                             </StackPanel>
                         </Grid>
 
-                        <Grid Grid.Row="2" Margin="0,10,0,0">
+                        <Grid Grid.Row="2" Margin="0,10,0,0"
+                              Visibility="{Binding FiltrosAvanzadosExpandidos, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -523,7 +856,7 @@
                             <Button x:Name="btnLimpiarFiltros"
                                     Content="Limpiar"
                                     Height="30"
-                                    Width="100"
+                                    Padding="12,0"
                                     Margin="0,0,8,0"
                                     Command="{Binding LimpiarFiltrosCommand}"
                                     Background="#FF6C757D"
@@ -534,7 +867,7 @@
                             <Button x:Name="btnAplicarFiltros"
                                     Content="Aplicar filtros"
                                     Height="30"
-                                    Width="130"
+                                    Padding="12,0"
                                     Command="{Binding AplicarFiltrosCommand}"
                                     Background="#FF2E86C1"
                                     Foreground="White"
@@ -677,11 +1010,12 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Grid.Row="0"
                                Grid.Column="0"
-                               Grid.ColumnSpan="3"
+                               Grid.ColumnSpan="4"
                                Text="Acciones rápidas"
                                FontSize="14"
                                FontWeight="Bold"
@@ -706,12 +1040,27 @@
                         Grid.Column="2"
                         Content="Eliminar Seleccionada"
                         Height="30"
-                        Width="160"
+                        Padding="12,0"
+                        Margin="0,0,12,0"
                         Command="{Binding BorrarTransaccionCommand}"
                         CommandParameter="{Binding SelectedItem, ElementName=gridTransacciones}"
                         Background="#FFDC3545"
                         Foreground="White"
                         ToolTip="Eliminar la fila seleccionada en la tabla de transacciones"
+                        FontWeight="Bold"/>
+
+                    <Button x:Name="btnEditarTransaccion"
+                        Grid.Row="1"
+                        Grid.Column="3"
+                        Content="Editar Seleccionada"
+                        Height="30"
+                        Padding="12,0"
+                        Margin="0,0,0,0"
+                        Command="{Binding EditarTransaccionCommand}"
+                        CommandParameter="{Binding SelectedItem, ElementName=gridTransacciones}"
+                        Background="#FF2E86C1"
+                        Foreground="White"
+                        ToolTip="Cargar la fila seleccionada en el formulario para editarla"
                         FontWeight="Bold"/>
                 </Grid>
                 </Grid>
@@ -720,33 +1069,74 @@
                     Visibility="{Binding IsSimuladorVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <StackPanel Orientation="Horizontal"
+                <Border Grid.Row="0"
+                        Background="#FFF0F7F7"
+                        BorderBrush="#FF2E86C1"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="12"
+                        Margin="0,0,0,15">
+                    <StackPanel>
+                        <TextBlock Text="📌 ¿Qué son los objetivos?"
+                                   FontSize="14"
+                                   FontWeight="Bold"
+                                   Foreground="#FF1D4E89"
+                                   Margin="0,0,0,6"/>
+                        <TextBlock Text="Crea metas de ahorro personales. Establece cuánto quieres ahorrar, cúanto has ahorrado ya y su prioridad. Ve el progreso en tiempo real."
+                                   FontSize="12"
+                                   Foreground="#FF2C3E50"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,8"/>
+                        <TextBlock Text="💡 Consejo: Puedes editar los objetivos en cualquier momento para actualizar el progreso."
+                                   FontSize="11"
+                                   Foreground="#FF5A6270"
+                                   TextWrapping="Wrap"
+                                   FontStyle="Italic"/>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Grid.Row="1"
+                        Orientation="Horizontal"
                         Margin="0,0,0,15">
                     <Button x:Name="btnNuevoObjetivo"
                             Content="➕ Nuevo Objetivo"
-                            Width="150"
-                            Height="35"
+                            Height="38"
+                            Padding="14,0"
                         Command="{Binding NuevoObjetivoCommand}"
                             Background="#FF6F42C1"
                             Foreground="White"
                             ToolTip="Crear un nuevo objetivo de ahorro"
                             FontWeight="Bold"
-                            Margin="0,0,10,0"/>
+                            Margin="0,0,10,0"
+                            FontSize="13"/>
+                    <Button x:Name="btnEditarObjetivo"
+                            Content="✏️ Editar"
+                            Height="38"
+                            Padding="14,0"
+                        Command="{Binding EditarObjetivoCommand}"
+                            Background="#FF2E86C1"
+                            Foreground="White"
+                            ToolTip="Editar el objetivo seleccionado"
+                            FontWeight="Bold"
+                            Margin="0,0,10,0"
+                            FontSize="13"/>
                     <Button x:Name="btnBorrarObjetivo"
-                            Content="🗑️ Borrar Seleccionado"
-                            Width="170"
-                            Height="35"
+                            Content="🗑️ Eliminar"
+                            Height="38"
+                            Padding="14,0"
                         Command="{Binding BorrarObjetivoCommand}"
                             Background="#FFDC3545"
                             Foreground="White"
                             ToolTip="Eliminar el objetivo seleccionado"
-                            FontWeight="Bold"/>
+                            FontWeight="Bold"
+                            FontSize="13"/>
                 </StackPanel>
 
-                <Grid Grid.Row="1">
+                <Grid Grid.Row="2">
                     <DataGrid x:Name="gridObjetivos"
                         ItemsSource="{Binding Objetivos}"
                         SelectedItem="{Binding ObjetivoSeleccionado, Mode=TwoWay}"
