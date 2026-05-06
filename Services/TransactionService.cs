@@ -18,7 +18,7 @@ public class TransactionService
         command.Parameters.AddWithValue("@tipo", tipo);
         command.Parameters.AddWithValue("@categoria", categoria);
         command.Parameters.AddWithValue("@importe", importe);
-        command.Parameters.AddWithValue("@fecha", fecha.Date);
+        command.Parameters.AddWithValue("@fecha", fecha);
         command.Parameters.AddWithValue("@descripcion", descripcion);
         command.ExecuteNonQuery();
     }
@@ -68,7 +68,7 @@ public class TransactionService
         command.Parameters.AddWithValue("@tipo", tipo);
         command.Parameters.AddWithValue("@categoria", categoria);
         command.Parameters.AddWithValue("@importe", importe);
-        command.Parameters.AddWithValue("@fecha", fecha.Date);
+        command.Parameters.AddWithValue("@fecha", fecha);
         command.Parameters.AddWithValue("@descripcion", descripcion);
         command.Parameters.AddWithValue("@idTransaccion", transactionId);
         command.Parameters.AddWithValue("@usuarioId", userId);

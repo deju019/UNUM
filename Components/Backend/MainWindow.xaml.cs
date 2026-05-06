@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using UNUM.Services;
@@ -55,6 +56,8 @@ namespace UNUM
             await viewModel.CargarHistorialAsync();
             MostrarOnboardingSiCorresponde();
             IniciarAnimacionesIniciales();
+            // Attempt to load external logo into the sidebar (if Assets/logo.png exists)
+            MainWindow_LoadedForLogo(sender, e);
         }
 
         private void MostrarOnboardingSiCorresponde()
@@ -137,7 +140,37 @@ namespace UNUM
                 return;
             }
 
+            // Ignore the final/completed step to avoid triggering navigation or flashing
+            if (paso == TutorialPaso.Completado)
+            {
+                SincronizarMenuConPanelVisible();
+                // Only restore visual focus, do not navigate panels or reposition the guide
+                RestaurarFocoTutorial();
+                return;
+            }
+
             ActualizarVistaTutorial(paso);
+        }
+
+        private void SincronizarMenuConPanelVisible()
+        {
+            if (DataContext is not MainWindowViewModel viewModel)
+            {
+                return;
+            }
+
+            if (panelSimulador.Visibility == Visibility.Visible && panelTransacciones.Visibility != Visibility.Visible)
+            {
+                viewModel.MenuTransaccionesActivo = false;
+                viewModel.MenuSimuladorActivo = true;
+                return;
+            }
+
+            if (panelTransacciones.Visibility == Visibility.Visible && panelSimulador.Visibility != Visibility.Visible)
+            {
+                viewModel.MenuTransaccionesActivo = true;
+                viewModel.MenuSimuladorActivo = false;
+            }
         }
 
         private void AplicarFocoTutorial(TutorialPaso paso)
@@ -210,17 +243,36 @@ namespace UNUM
 
             objetivo.UpdateLayout();
 
-            var screenPoint = objetivo.PointToScreen(new Point(objetivo.ActualWidth + 12, 0));
-            var dpi = VisualTreeHelper.GetDpi(this);
-            var left = screenPoint.X / dpi.DpiScaleX;
-            var top = screenPoint.Y / dpi.DpiScaleY;
-
             var workArea = SystemParameters.WorkArea;
-            var maxLeft = Math.Max(workArea.Left, workArea.Right - _onboardingGuideWindow.Width - 12);
-            var maxTop = Math.Max(workArea.Top, workArea.Bottom - _onboardingGuideWindow.Height - 12);
+            var dpi = VisualTreeHelper.GetDpi(this);
+            var objetivoScreenPoint = objetivo.PointToScreen(new Point(0, 0));
 
-            _onboardingGuideWindow.Left = Math.Max(workArea.Left + 8, Math.Min(left, maxLeft));
-            _onboardingGuideWindow.Top = Math.Max(workArea.Top + 8, Math.Min(top, maxTop));
+            double guiaLeft, guiaTop;
+
+            // Intentar posicionar a la derecha del elemento
+            double rightSide = (objetivoScreenPoint.X + objetivo.ActualWidth + 16) / dpi.DpiScaleX;
+            
+            // Si hay espacio a la derecha (y la ventana no se sale de pantalla)
+            if (rightSide + _onboardingGuideWindow.Width + 12 < workArea.Right)
+            {
+                // Posicionar a la derecha
+                guiaLeft = rightSide;
+            }
+            else
+            {
+                // Si no, posicionar a la izquierda del elemento
+                guiaLeft = Math.Max(workArea.Left + 8, (objetivoScreenPoint.X - _onboardingGuideWindow.Width - 16) / dpi.DpiScaleX);
+            }
+
+            // Alinear verticalmente con el elemento objetivo (arriba del elemento)
+            guiaTop = (objetivoScreenPoint.Y - _onboardingGuideWindow.Height / 2) / dpi.DpiScaleY;
+
+            // Asegurar que no se sale de la pantalla
+            var maxLeft = Math.Max(workArea.Left, workArea.Right - _onboardingGuideWindow.Width - 12);
+            var maxTop = Math.Max(workArea.Top, Math.Min(guiaTop, workArea.Bottom - _onboardingGuideWindow.Height - 12));
+
+            _onboardingGuideWindow.Left = Math.Max(workArea.Left + 8, Math.Min(guiaLeft, maxLeft));
+            _onboardingGuideWindow.Top = Math.Max(workArea.Top + 8, maxTop);
         }
 
         private void ActualizarVistaTutorial(TutorialPaso paso)
@@ -292,6 +344,42 @@ namespace UNUM
         private void btnTutorial_Click(object sender, RoutedEventArgs e)
         {
             AbrirGuiaInteractiva();
+        }
+
+        private void gridTransacciones_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
+        {
+            if (e.PropertyName != "Fecha" || e.Column is not DataGridTextColumn textColumn)
+            {
+                return;
+            }
+
+            if (textColumn.Binding is Binding binding)
+            {
+                binding.StringFormat = "dd/MM/yyyy HH:mm";
+                textColumn.Binding = binding;
+            }
+        }
+
+        private void MainWindow_LoadedForLogo(object sender, RoutedEventArgs e)
+        {
+            // Try to load external logo at runtime if present
+            try
+            {
+                var logoPath = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Assets", "logo.png");
+                if (System.IO.File.Exists(logoPath))
+                {
+                    var bitmap = new System.Windows.Media.Imaging.BitmapImage(new System.Uri(logoPath, System.UriKind.Absolute));
+                    var img = this.FindName("imgLogo") as System.Windows.Controls.Image;
+                    if (img is not null)
+                    {
+                        img.Source = bitmap;
+                    }
+                }
+            }
+            catch
+            {
+                // ignore load errors and leave fallback visuals
+            }
         }
 
         private void NavigateToPanel(MainPanelType panel)

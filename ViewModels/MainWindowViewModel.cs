@@ -71,6 +71,7 @@ public class MainWindowViewModel : ViewModelBase
     private string _importeTransaccion = string.Empty;
     private string _descripcionTransaccion = string.Empty;
     private DateTime _fechaTransaccion = DateTime.Today;
+    private DateTime? _fechaHoraOriginalTransaccion;
     private bool _isEditingTransaccion;
     private int _transaccionEnEdicionId;
     private string _transactionFormTitle = "Registro de transacciones";
@@ -697,9 +698,11 @@ public class MainWindowViewModel : ViewModelBase
 
         try
         {
+            var fechaParaGuardar = ObtenerFechaParaGuardar();
+
             if (IsEditingTransaccion)
             {
-                var updated = _transactionService.UpdateTransaction(TransaccionEnEdicionId, _usuarioId, TipoTransaccion, CategoriaTransaccion, importe, FechaTransaccion, DescripcionTransaccion);
+                var updated = _transactionService.UpdateTransaction(TransaccionEnEdicionId, _usuarioId, TipoTransaccion, CategoriaTransaccion, importe, fechaParaGuardar, DescripcionTransaccion);
                 if (!updated)
                 {
                     System.Windows.MessageBox.Show("No se pudo actualizar la transacción seleccionada.", "Fallo Crítico");
@@ -711,7 +714,7 @@ public class MainWindowViewModel : ViewModelBase
             }
             else
             {
-                _transactionService.AddTransaction(_usuarioId, TipoTransaccion, CategoriaTransaccion, importe, FechaTransaccion, DescripcionTransaccion);
+                _transactionService.AddTransaction(_usuarioId, TipoTransaccion, CategoriaTransaccion, importe, fechaParaGuardar, DescripcionTransaccion);
 
                 System.Windows.MessageBox.Show("Transacción registrada con éxito.", "Operación Completada");
                 TransactionSaved?.Invoke(this, EventArgs.Empty);
@@ -738,6 +741,7 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         TransaccionEnEdicionId = Convert.ToInt32(filaSeleccionada["Id"]);
+        _fechaHoraOriginalTransaccion = filaSeleccionada["Fecha"] == DBNull.Value ? null : Convert.ToDateTime(filaSeleccionada["Fecha"]);
         TipoTransaccion = filaSeleccionada["Tipo"]?.ToString() ?? "Gasto";
         CategoriaTransaccion = filaSeleccionada["Categoria"]?.ToString() ?? string.Empty;
         ImporteTransaccion = filaSeleccionada["Importe"] == DBNull.Value ? string.Empty : Convert.ToDecimal(filaSeleccionada["Importe"]).ToString(CultureInfo.CurrentCulture);
@@ -753,6 +757,7 @@ public class MainWindowViewModel : ViewModelBase
     {
         IsEditingTransaccion = false;
         TransaccionEnEdicionId = 0;
+        _fechaHoraOriginalTransaccion = null;
         TransactionFormTitle = "Registro de transacciones";
         TransactionSubmitText = "Añadir";
         TipoTransaccion = "Gasto";
@@ -761,6 +766,23 @@ public class MainWindowViewModel : ViewModelBase
         DescripcionTransaccion = string.Empty;
         FechaTransaccion = DateTime.Today;
         ActualizarCategoriasPorTipo();
+    }
+
+    private DateTime ObtenerFechaParaGuardar()
+    {
+        var fechaBase = FechaTransaccion.Date;
+
+        if (IsEditingTransaccion && _fechaHoraOriginalTransaccion.HasValue)
+        {
+            return fechaBase.Add(_fechaHoraOriginalTransaccion.Value.TimeOfDay);
+        }
+
+        if (fechaBase == DateTime.Today)
+        {
+            return fechaBase.Add(DateTime.Now.TimeOfDay);
+        }
+
+        return fechaBase;
     }
 
     private void CerrarSesion()

@@ -40,12 +40,29 @@
                         DockPanel.Dock="Bottom"/>
 
                 <StackPanel Margin="0,30,0,0">
-                    <TextBlock Text="UNUM"
-                               Foreground="White"
-                               FontSize="28"
-                               FontWeight="Bold"
-                               HorizontalAlignment="Center"
-                               Margin="0,0,0,40"/>
+                    <!-- Logo UNUM (image fallback to Assets/logo.png if present) -->
+                    <Grid Height="80" Margin="20,0,20,30" HorizontalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="60"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <!-- Logo: vector fallback under Image (image overlays when present) -->
+                        <Grid Grid.Column="0" Width="60" Height="60" VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <Viewbox Stretch="Uniform">
+                                <Canvas Width="60" Height="60">
+                                    <Ellipse Canvas.Left="5" Canvas.Top="5" Width="50" Height="50" Stroke="#2C2C2C" StrokeThickness="3" Fill="Transparent"/>
+                                    <Path Data="M18,18 C28,4 38,4 42,18 C44,24 40,34 30,44 C20,34 16,24 18,18 Z" Fill="#2C2C2C" Opacity="0.95"/>
+                                    <Path Data="M30,8 L34,24 L30,36 L26,24 Z" Fill="#D4AF37"/>
+                                </Canvas>
+                            </Viewbox>
+                            <Image x:Name="imgLogo" Width="60" Height="60" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Grid>
+                        <!-- Texto UNUM -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
+                            <TextBlock Text="UNUM" Foreground="White" FontSize="22" FontWeight="ExtraBold"/>
+                            <TextBlock Text="Finanzas" Foreground="#D4AF37" FontSize="9" FontWeight="SemiBold" Margin="0,-2,0,0"/>
+                        </StackPanel>
+                    </Grid>
 
                 <Button x:Name="btnMenuTransacciones"
                         Content="📊 Mis Transacciones"
@@ -955,7 +972,42 @@
                                   IsReadOnly="True"
                                   Background="White"
                                   AlternatingRowBackground="#FFF9F9F9"
-                                  SelectionMode="Single"/>
+                                  SelectionMode="Single"
+                                  SelectionUnit="FullRow"
+                                  AutoGeneratingColumn="gridTransacciones_AutoGeneratingColumn">
+                            <DataGrid.CellStyle>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Padding" Value="8,6"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="Transparent"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.CellStyle>
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Setter Property="Background" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                    <Setter Property="Padding" Value="0"/>
+                                    <Setter Property="SnapsToDevicePixels" Value="True"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#EEF6FC"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="#1A2E86C1"/>
+                                            <Setter Property="BorderBrush" Value="#2E86C1"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                        </DataGrid>
 
                         <Border x:Name="panelEstadoVacioTransacciones"
                             Visibility="{Binding TransaccionesView, Converter={StaticResource EmptyCollectionToVisibilityConverter}}"

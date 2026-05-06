@@ -4,16 +4,8 @@
 Aplicacion de escritorio WPF (.NET 8) para finanzas personales con autenticacion, transacciones, objetivos, presupuestos y una guia de uso clara.
 
 ## Estado actual validado
-- Flujo principal operativo: Inicio -> Login/Register -> MainWindow.
-- MainWindow concentra el trabajo diario: altas y edicion de transacciones, filtros, resumen financiero, analitica mensual, presupuestos y objetivos.
-- El tutorial inicial existe y se puede reabrir desde el menu lateral.
-- El onboarding interactivo ya no es una ventana aislada: acompana al dashboard y lleva la vista a la seccion correcta.
-- El saldo actual se pinta en rojo cuando es negativo.
-- La solucion compila correctamente tras los ultimos cambios.
-
-## Arquitectura actual
-- `Infrastructure/DbConnectionFactory.cs` centraliza la creacion de conexiones.
-- `Services/AuthService.cs`, `TransactionService.cs`, `ObjectiveService.cs`, `WindowDialogService.cs` y `OnboardingService.cs` cubren la logica principal.
+**Tutorial mejorado (v3)**: posicionamiento al lado (derecha o izquierda discretamente) del elemento que referencia, sin tapar nada. Se intenta poner a la derecha; si no hay espacio, va a la izquierda. Alineado verticalmente. No interfiere con diálogos modales.
+**Logo UNUM**: agregado en el sidebar con diseño visual (círculo dorado + arco) junto a texto "UNUM / Finanzas".
 - `ViewModels/MainWindowViewModel.cs` concentra la logica del dashboard y expone comandos/bindings.
 - `Security/PasswordHasher.cs` usa BCrypt; si existe un usuario legado en texto plano, se migra al primer login valido.
 

@@ -50,12 +50,25 @@ namespace UNUM
                 TutorialPaso.MostrarPresupuestos => (7, "Presupuestos mensuales\n\nAquí defines un límite por categoría, editas presupuestos existentes y eliminas uno individual sin tocar los demás."),
                 TutorialPaso.MostrarObjetivos => (8, "Objetivos de ahorro\n\nCambia al panel de objetivos para crear metas, editar su progreso y seguir cuánto te falta para cumplir cada una."),
                 TutorialPaso.ExplicarSaldo => (9, "Saldo y resumen\n\nMira el saldo actual en la barra lateral. Si baja de cero, la app lo pinta en rojo para avisarte de inmediato."),
-                _ => (0, "Tutorial completado. Ya conoces las partes principales de UNUM.")
+                _ => (10, "Tutorial completado. Ya conoces las partes principales de UNUM.")
             };
 
+            // Mostrar contador sólo en pasos intermedios
+            if (_pasoActual == TutorialPaso.Completado)
+            {
+                txtPaso.Visibility = System.Windows.Visibility.Collapsed;
+                txtGuiaTexto.Text = "Tutorial completado. Gracias por usar UNUM.";
+                btnSiguiente.Content = "Cerrar";
+                btnSiguiente.IsEnabled = true;
+
+                // Do not invoke Close here immediately; allow owner to restore UI smoothly.
+                return;
+            }
+
+            txtPaso.Visibility = System.Windows.Visibility.Visible;
             txtPaso.Text = $"{paso}/9";
             txtGuiaTexto.Text = titulo;
-            btnSiguiente.Content = _pasoActual == TutorialPaso.Completado ? "Cerrar" : "Siguiente →";
+            btnSiguiente.Content = "Siguiente →";
 
             // Deshabilitar botón en pasos automáticos
             btnSiguiente.IsEnabled = _pasoActual != TutorialPaso.EsperarAñadir && _pasoActual != TutorialPaso.PedirBorrar;
@@ -89,10 +102,8 @@ namespace UNUM
             if (_pasoActual < TutorialPaso.Completado)
             {
                 PasoActual = (TutorialPaso)((int)_pasoActual + 1);
-                if (_pasoActual == TutorialPaso.Completado)
-                {
-                    Close();
-                }
+                // Do not auto-close here; allow the user to review the final message
+                // and let the owner restore focus/close the window to avoid UI jumps.
             }
         }
     }
