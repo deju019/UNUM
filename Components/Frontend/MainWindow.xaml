@@ -17,6 +17,7 @@
         <local:MenuActiveBackgroundConverter x:Key="MenuActiveBackgroundConverter"/>
         <local:DecimalSaldoToBrushConverter x:Key="DecimalSaldoToBrushConverter"/>
         <local:EmptyCollectionToVisibilityConverter x:Key="EmptyCollectionToVisibilityConverter"/>
+        <local:InvertedEmptyCollectionToVisibilityConverter x:Key="InvertedEmptyCollectionToVisibilityConverter"/>
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -25,12 +26,12 @@
         </Grid.ColumnDefinitions>
 
         <Border x:Name="panelSidebar" Grid.Column="0"
-                Background="#2C3E50">
+            Background="#13203A">
             <DockPanel LastChildFill="True">
                 <Button x:Name="btnCerrarSesion"
                         Content="Cerrar Sesión"
                         Height="35"
-                        Background="#E74C3C"
+                    Background="#D94B64"
                         Foreground="White"
                         FontWeight="Bold"
                         BorderThickness="0"
@@ -40,28 +41,17 @@
                         DockPanel.Dock="Bottom"/>
 
                 <StackPanel Margin="0,30,0,0">
-                    <!-- Logo UNUM (image fallback to Assets/logo.png if present) -->
-                    <Grid Height="80" Margin="20,0,20,30" HorizontalAlignment="Center">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="60"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <!-- Logo: vector fallback under Image (image overlays when present) -->
-                        <Grid Grid.Column="0" Width="60" Height="60" VerticalAlignment="Center" HorizontalAlignment="Center">
-                            <Viewbox Stretch="Uniform">
-                                <Canvas Width="60" Height="60">
-                                    <Ellipse Canvas.Left="5" Canvas.Top="5" Width="50" Height="50" Stroke="#2C2C2C" StrokeThickness="3" Fill="Transparent"/>
-                                    <Path Data="M18,18 C28,4 38,4 42,18 C44,24 40,34 30,44 C20,34 16,24 18,18 Z" Fill="#2C2C2C" Opacity="0.95"/>
-                                    <Path Data="M30,8 L34,24 L30,36 L26,24 Z" Fill="#D4AF37"/>
-                                </Canvas>
-                            </Viewbox>
-                            <Image x:Name="imgLogo" Width="60" Height="60" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Grid>
-                        <!-- Texto UNUM -->
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="8,0,0,0">
-                            <TextBlock Text="UNUM" Foreground="White" FontSize="22" FontWeight="ExtraBold"/>
-                            <TextBlock Text="Finanzas" Foreground="#D4AF37" FontSize="9" FontWeight="SemiBold" Margin="0,-2,0,0"/>
-                        </StackPanel>
+                    <!-- Logo UNUM (Solo imagen grande) -->
+                    <Grid Height="140" Width="140" Margin="20,0,20,30" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <!-- Subtle contrast background to improve clarity on dark sidebar -->
+                        <Ellipse Fill="#14FFFFFF" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                        <Border CornerRadius="70" Background="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Image x:Name="imgLogo" Width="120" Height="120" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality" UseLayoutRounding="True" SnapsToDevicePixels="True">
+                                <Image.Effect>
+                                    <DropShadowEffect Color="#000000" BlurRadius="8" ShadowDepth="2" Opacity="0.6" />
+                                </Image.Effect>
+                            </Image>
+                        </Border>
                     </Grid>
 
                 <Button x:Name="btnMenuTransacciones"
@@ -91,7 +81,7 @@
                 <Button x:Name="btnTutorial"
                         Content="❓ Tutorial"
                         Height="35"
-                        Background="#FF9500"
+                    Background="#1C5DFF"
                         Foreground="White"
                         FontSize="12"
                         FontWeight="Bold"
@@ -102,20 +92,30 @@
 
                 <Border x:Name="borderSaldo"
                         Margin="15,0,15,0"
-                        Background="#27AE60"
+                    Background="#1C5DFF"
                         CornerRadius="8"
-                        Padding="10">
+                        Padding="10"
+                        UseLayoutRounding="True"
+                        SnapsToDevicePixels="True">
                     <StackPanel>
                         <TextBlock Text="Saldo Actual"
                                    Foreground="White"
                                    FontSize="12"
-                                   HorizontalAlignment="Center"/>
+                                   HorizontalAlignment="Center"
+                                   UseLayoutRounding="True"
+                                   SnapsToDevicePixels="True"
+                                   TextOptions.TextFormattingMode="Display"
+                                   TextOptions.TextRenderingMode="ClearType" />
                         <TextBlock x:Name="txtSaldoTotal"
                                    Text="{Binding FinancialSummary.Saldo, Converter={StaticResource DecimalToEuroConverter}}"
                                    Foreground="White"
                                    FontSize="20"
                                    FontWeight="Bold"
-                                   HorizontalAlignment="Center"/>
+                                   HorizontalAlignment="Center"
+                                   UseLayoutRounding="True"
+                                   SnapsToDevicePixels="True"
+                                   TextOptions.TextFormattingMode="Display"
+                                   TextOptions.TextRenderingMode="ClearType" />
                     </StackPanel>
                 </Border>
 
@@ -142,8 +142,8 @@
                 </Grid.RowDefinitions>
 
                 <Border x:Name="borderRegistroTransaccion" Grid.Row="0"
-                        Background="#FFF8FBFA"
-                        BorderBrush="#FFE3E7EB"
+                    Background="#FFF8FAFF"
+                    BorderBrush="#FFD6E0F5"
                         BorderThickness="1"
                         CornerRadius="6"
                         Padding="15"
@@ -237,7 +237,7 @@
                                     Padding="16,0"
                                     Margin="0,0,8,0"
                                     Command="{Binding GuardarTransaccionCommand}"
-                                    Background="#FF28A745"
+                                    Background="#1C5DFF"
                                     Foreground="White"
                                     ToolTip="Guardar la transacción con los datos introducidos"
                                     FontWeight="Bold"/>
@@ -249,7 +249,7 @@
                                     Padding="16,0"
                                     Command="{Binding CancelarEdicionTransaccionCommand}"
                                     Visibility="{Binding IsEditingTransaccion, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                    Background="#FF6C757D"
+                                    Background="#5A6578"
                                     Foreground="White"
                                     FontWeight="Bold"/>
                         </Grid>
@@ -281,51 +281,63 @@
                         <Border Grid.Column="0"
                                 Background="#FFEAF8EE"
                                 CornerRadius="6"
-                                Padding="10"
+                                Padding="16,18"
                                 Margin="0,0,8,0">
-                            <StackPanel>
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                 <TextBlock Text="Ingresos"
                                            FontWeight="Bold"
-                                           Foreground="#FF1E7E34"/>
+                                           Foreground="#FF1E7E34"
+                                           FontSize="11"
+                                           Margin="0,0,0,6"
+                                           TextAlignment="Center"/>
                                 <TextBlock x:Name="txtTotalIngresos"
                                            Text="{Binding FinancialSummary.TotalIngresos, Converter={StaticResource DecimalToEuroConverter}}"
-                                           FontSize="20"
+                                           FontSize="22"
                                            FontWeight="Bold"
-                                           Foreground="#FF1E7E34"/>
+                                           Foreground="#FF1E7E34"
+                                           TextAlignment="Center"/>
                             </StackPanel>
                         </Border>
 
                         <Border Grid.Column="1"
                                 Background="#FFFDECEC"
                                 CornerRadius="6"
-                                Padding="10"
+                                Padding="16,18"
                                 Margin="4,0,4,0">
-                            <StackPanel>
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                 <TextBlock Text="Gastos"
                                            FontWeight="Bold"
-                                           Foreground="#FFC0392B"/>
+                                           Foreground="#FFC0392B"
+                                           FontSize="11"
+                                           Margin="0,0,0,6"
+                                           TextAlignment="Center"/>
                                 <TextBlock x:Name="txtTotalGastos"
                                            Text="{Binding FinancialSummary.TotalGastos, Converter={StaticResource DecimalToEuroConverter}}"
-                                           FontSize="20"
+                                           FontSize="22"
                                            FontWeight="Bold"
-                                           Foreground="#FFC0392B"/>
+                                           Foreground="#FFC0392B"
+                                           TextAlignment="Center"/>
                             </StackPanel>
                         </Border>
 
                         <Border Grid.Column="2"
                                 Background="#FFEFF3FF"
                                 CornerRadius="6"
-                                Padding="10"
+                                Padding="16,18"
                                 Margin="8,0,0,0">
-                            <StackPanel>
+                            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                 <TextBlock Text="Balance"
                                            FontWeight="Bold"
-                                           Foreground="#FF1D4E89"/>
+                                           Foreground="#FF1D4E89"
+                                           FontSize="11"
+                                           Margin="0,0,0,6"
+                                           TextAlignment="Center"/>
                                 <TextBlock x:Name="txtBalanceNeto"
                                            Text="{Binding FinancialSummary.Saldo, Converter={StaticResource DecimalToEuroConverter}}"
-                                           FontSize="20"
+                                           FontSize="22"
                                            FontWeight="Bold"
-                                           Foreground="{Binding FinancialSummary.Saldo, Converter={StaticResource DecimalSaldoToBrushConverter}}"/>
+                                           Foreground="{Binding FinancialSummary.Saldo, Converter={StaticResource DecimalSaldoToBrushConverter}}"
+                                           TextAlignment="Center"/>
                             </StackPanel>
                         </Border>
                     </Grid>
@@ -548,8 +560,8 @@
 
                 <Border x:Name="borderPresupuestos"
                     Grid.Row="2"
-                        Background="#FFF8FBF7"
-                        BorderBrush="#FFDDE8D8"
+                        Background="#FFF8FAFF"
+                        BorderBrush="#FFD6E0F5"
                         BorderThickness="1"
                         CornerRadius="6"
                         Padding="10"
@@ -603,7 +615,7 @@
                                     Height="28"
                                     Margin="0,20,10,0"
                                     Command="{Binding GuardarPresupuestoCommand}"
-                                    Background="#FF2E86C1"
+                                    Background="#1C5DFF"
                                     Foreground="White"
                                     FontWeight="Bold"/>
 
@@ -614,7 +626,7 @@
                                     Height="28"
                                     Margin="0,20,10,0"
                                     Command="{Binding CancelarEdicionPresupuestoCommand}"
-                                    Background="#FF6C757D"
+                                    Background="#5A6578"
                                     Foreground="White"
                                     FontWeight="Bold">
                                 <Button.Style>
@@ -636,7 +648,7 @@
                                     Height="28"
                                     Margin="0,20,0,0"
                                     Command="{Binding ReiniciarPresupuestosCommand}"
-                                    Background="#FF6C757D"
+                                    Background="#5A6578"
                                     Foreground="White"
                                     FontWeight="Bold"/>
                         </Grid>
@@ -686,7 +698,7 @@
                                                     Margin="8,0,0,0"
                                                     Command="{Binding DataContext.EditarPresupuestoCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                     CommandParameter="{Binding}"
-                                                    Background="#FF1D4E89"
+                                                    Background="#1C5DFF"
                                                     Foreground="White"
                                                     FontWeight="Bold"/>
 
@@ -722,7 +734,7 @@
                 </Border>
 
                 <Border x:Name="borderFiltrosBusqueda" Grid.Row="3"
-                        Background="#FFF7F9FB"
+                    Background="#FFF8FAFF"
                         CornerRadius="6"
                         Padding="10"
                         Margin="0,0,0,15">
@@ -971,7 +983,7 @@
                                   AutoGenerateColumns="True"
                                   IsReadOnly="True"
                                   Background="White"
-                                  AlternatingRowBackground="#FFF9F9F9"
+                                  AlternatingRowBackground="#FFF5F8FF"
                                   SelectionMode="Single"
                                   SelectionUnit="FullRow"
                                   AutoGeneratingColumn="gridTransacciones_AutoGeneratingColumn">
@@ -981,9 +993,11 @@
                                     <Setter Property="BorderThickness" Value="0"/>
                                     <Setter Property="Padding" Value="8,6"/>
                                     <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="Foreground" Value="#2C2C2C"/>
                                     <Style.Triggers>
                                         <Trigger Property="IsSelected" Value="True">
                                             <Setter Property="Background" Value="Transparent"/>
+                                            <Setter Property="Foreground" Value="#2C2C2C"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -994,15 +1008,16 @@
                                     <Setter Property="BorderThickness" Value="0"/>
                                     <Setter Property="Padding" Value="0"/>
                                     <Setter Property="SnapsToDevicePixels" Value="True"/>
+                                    <Setter Property="Foreground" Value="#2C2C2C"/>
                                     <Style.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#EEF6FC"/>
+                                            <Setter Property="Background" Value="#FFEFF4FF"/>
                                         </Trigger>
                                         <Trigger Property="IsSelected" Value="True">
-                                            <Setter Property="Background" Value="#1A2E86C1"/>
-                                            <Setter Property="BorderBrush" Value="#2E86C1"/>
+                                            <Setter Property="Background" Value="#FFDDE9FF"/>
+                                            <Setter Property="BorderBrush" Value="#1C5DFF"/>
                                             <Setter Property="BorderThickness" Value="1"/>
-                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                            <Setter Property="Foreground" Value="#2C2C2C"/>
                                         </Trigger>
                                     </Style.Triggers>
                                 </Style>
@@ -1110,7 +1125,7 @@
                         Margin="0,0,0,0"
                         Command="{Binding EditarTransaccionCommand}"
                         CommandParameter="{Binding SelectedItem, ElementName=gridTransacciones}"
-                        Background="#FF2E86C1"
+                        Background="#1C5DFF"
                         Foreground="White"
                         ToolTip="Cargar la fila seleccionada en el formulario para editarla"
                         FontWeight="Bold"/>
@@ -1126,8 +1141,8 @@
                 </Grid.RowDefinitions>
 
                 <Border Grid.Row="0"
-                        Background="#FFF0F7F7"
-                        BorderBrush="#FF2E86C1"
+                    Background="#FFEAF1FF"
+                    BorderBrush="#1C5DFF"
                         BorderThickness="1"
                         CornerRadius="6"
                         Padding="12"
@@ -1136,7 +1151,7 @@
                         <TextBlock Text="📌 ¿Qué son los objetivos?"
                                    FontSize="14"
                                    FontWeight="Bold"
-                                   Foreground="#FF1D4E89"
+                                   Foreground="#1C5DFF"
                                    Margin="0,0,0,6"/>
                         <TextBlock Text="Crea metas de ahorro personales. Establece cuánto quieres ahorrar, cúanto has ahorrado ya y su prioridad. Ve el progreso en tiempo real."
                                    FontSize="12"
@@ -1159,7 +1174,7 @@
                             Height="38"
                             Padding="14,0"
                         Command="{Binding NuevoObjetivoCommand}"
-                            Background="#FF6F42C1"
+                            Background="#1C5DFF"
                             Foreground="White"
                             ToolTip="Crear un nuevo objetivo de ahorro"
                             FontWeight="Bold"
@@ -1170,7 +1185,7 @@
                             Height="38"
                             Padding="14,0"
                         Command="{Binding EditarObjetivoCommand}"
-                            Background="#FF2E86C1"
+                            Background="#1C5DFF"
                             Foreground="White"
                             ToolTip="Editar el objetivo seleccionado"
                             FontWeight="Bold"
@@ -1196,7 +1211,8 @@
                         IsReadOnly="True"
                         Background="White"
                         AlternatingRowBackground="#FFF9F9F9"
-                        SelectionMode="Single">
+                        SelectionMode="Single"
+                        Visibility="{Binding TieneObjetivos, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Prioridad"
                             Binding="{Binding PrioridadTexto}"
@@ -1235,7 +1251,7 @@
                     </DataGrid>
 
                     <Border x:Name="panelEstadoVacioObjetivos"
-                        Visibility="{Binding Objetivos, Converter={StaticResource EmptyCollectionToVisibilityConverter}}"
+                        Visibility="{Binding TieneObjetivos, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=Invert}"
                         Background="#CCFFFFFF"
                         BorderBrush="#FFE3E7EB"
                         BorderThickness="1"

@@ -9,8 +9,8 @@
         Background="Transparent"
         ShowInTaskbar="False"
         ResizeMode="NoResize">
-    <Border Background="#FFFFFF"
-            BorderBrush="#2C2C2C"
+        <Border Background="#F8FAFF"
+            BorderBrush="#C8D5F2"
             BorderThickness="1.5"
             CornerRadius="12"
             Padding="18">
@@ -21,7 +21,6 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Header con paso y decoración dorada -->
             <Grid Grid.Row="0" Margin="0,0,0,12">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -29,9 +28,9 @@
                 </Grid.ColumnDefinitions>
                 
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Border Width="6" Height="20" Background="#D4AF37" CornerRadius="3" Margin="0,0,8,0"/>
-                    <TextBlock Text="Paso " FontSize="13" FontWeight="SemiBold" Foreground="#2C2C2C"/>
-                    <TextBlock x:Name="txtPaso" Text="1/9" FontSize="13" FontWeight="Bold" Foreground="#D4AF37"/>
+                    <Border Width="6" Height="20" Background="#1C5DFF" CornerRadius="3" Margin="0,0,8,0"/>
+                    <TextBlock Text="Paso " FontSize="13" FontWeight="SemiBold" Foreground="#0E1A30"/>
+                    <TextBlock x:Name="txtPaso" Text="1/9" FontSize="13" FontWeight="Bold" Foreground="#1C5DFF"/>
                 </StackPanel>
             </Grid>
 
@@ -40,7 +39,7 @@
                        x:Name="txtGuiaTexto"
                        Text="Bienvenido al tutorial interactivo."
                        FontSize="12"
-                       Foreground="#3A3A3A"
+                       Foreground="#2D3B54"
                        TextWrapping="Wrap"
                        LineHeight="19"
                        VerticalAlignment="Top"/>
@@ -51,12 +50,12 @@
                         Content="Saltar"
                         Width="80"
                         Height="32"
-                        Background="#F5F5F5"
-                        Foreground="#666666"
+                        Background="#EAF1FF"
+                        Foreground="#2D3B54"
                         FontSize="12"
                         FontWeight="Medium"
                         BorderThickness="1"
-                        BorderBrush="#E0E0E0"
+                        BorderBrush="#C8D5F2"
                         Click="btnSaltar_Click"
                         Margin="0,0,10,0"
                         Cursor="Hand"/>
@@ -65,7 +64,7 @@
                         Content="Siguiente →"
                         Width="110"
                         Height="32"
-                        Background="#2C2C2C"
+                        Background="#1C5DFF"
                         Foreground="White"
                         FontSize="12"
                         FontWeight="Bold"

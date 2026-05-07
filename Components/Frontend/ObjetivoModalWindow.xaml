@@ -6,7 +6,7 @@
         Width="420"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
-        Background="White">
+        Background="#F8FAFF">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -14,8 +14,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header negro con línea dorada -->
-        <Border Grid.Row="0" Background="#2C2C2C">
+        <Border Grid.Row="0" Background="#13203A">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -29,100 +28,102 @@
                                Margin="0,0,0,4"/>
                     <TextBlock Text="Define tu meta de ahorro"
                                FontSize="11"
-                               Foreground="#D4AF37"
+                               Foreground="#BFD3FF"
                                Opacity="0.9"
                                Margin="0,0,0,0"/>
                 </StackPanel>
-                <Border Grid.Row="1" Background="#D4AF37"/>
+                <Border Grid.Row="1" Background="#1C5DFF"/>
             </Grid>
         </Border>
 
         <!-- Contenido -->
-        <StackPanel Grid.Row="1" Margin="24,20,24,0">
-            <TextBlock Text="Nombre del objetivo"
-                       FontWeight="SemiBold"
-                       Foreground="#2C2C2C"
-                       Margin="0,0,0,8"
-                       FontSize="12"/>
-            <TextBox x:Name="txtNombre"
-                    Margin="0,0,0,18"
-                    Height="38"
-                    Padding="10,8"
-                    FontSize="12"
-                    ToolTip="Ejemplo: Nuevo laptop, Vacaciones, Emergencia"
-                    BorderBrush="#D0D0D0"
-                    BorderThickness="1"/>
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="24,20,24,20">
+            <StackPanel>
+                <TextBlock Text="Nombre del objetivo"
+                           FontWeight="SemiBold"
+                           Foreground="#0E1A30"
+                           Margin="0,0,0,8"
+                           FontSize="12"/>
+                <TextBox x:Name="txtNombre"
+                        Margin="0,0,0,18"
+                        Height="38"
+                        Padding="10,8"
+                        FontSize="12"
+                        ToolTip="Ejemplo: Nuevo laptop, Vacaciones, Emergencia"
+                        BorderBrush="#C8D5F2"
+                        BorderThickness="1"/>
 
-            <TextBlock Text="Cantidad total a ahorrar (€)"
-                       FontWeight="SemiBold"
-                       Foreground="#2C2C2C"
-                       Margin="0,0,0,8"
-                       FontSize="12"/>
-            <TextBox x:Name="txtCoste"
-                    Margin="0,0,0,18"
-                    Height="38"
-                    Padding="10,8"
-                    FontSize="12"
-                    ToolTip="Ejemplo: 1500"
-                    BorderBrush="#D0D0D0"
-                    BorderThickness="1"/>
+                <TextBlock Text="Cantidad total a ahorrar (€)"
+                           FontWeight="SemiBold"
+                           Foreground="#0E1A30"
+                           Margin="0,0,0,8"
+                           FontSize="12"/>
+                <TextBox x:Name="txtCoste"
+                        Margin="0,0,0,18"
+                        Height="38"
+                        Padding="10,8"
+                        FontSize="12"
+                        ToolTip="Ejemplo: 1500"
+                        BorderBrush="#C8D5F2"
+                        BorderThickness="1"/>
 
-            <TextBlock Text="Ya tienes ahorrado (€)"
-                       FontWeight="SemiBold"
-                       Foreground="#2C2C2C"
-                       Margin="0,0,0,8"
-                       FontSize="12"/>
-            <TextBox x:Name="txtAhorro"
-                    Text="0"
-                    Margin="0,0,0,18"
-                    Height="38"
-                    Padding="10,8"
-                    FontSize="12"
-                    ToolTip="Cantidad que ya has ahorrado para este objetivo"
-                    BorderBrush="#D0D0D0"
-                    BorderThickness="1"/>
+                <TextBlock Text="Ya tienes ahorrado (€)"
+                           FontWeight="SemiBold"
+                           Foreground="#0E1A30"
+                           Margin="0,0,0,8"
+                           FontSize="12"/>
+                <TextBox x:Name="txtAhorro"
+                        Text="0"
+                        Margin="0,0,0,18"
+                        Height="38"
+                        Padding="10,8"
+                        FontSize="12"
+                        ToolTip="Cantidad que ya has ahorrado para este objetivo"
+                        BorderBrush="#C8D5F2"
+                        BorderThickness="1"/>
 
-            <TextBlock Text="Prioridad"
-                       FontWeight="SemiBold"
-                       Foreground="#2C2C2C"
-                       Margin="0,0,0,8"
-                       FontSize="12"/>
-            <ComboBox x:Name="cmbPrioridad"
-                    Margin="0,0,0,20"
-                    Height="38"
-                    Padding="10,8"
-                    FontSize="12"
-                    Background="White"
-                    BorderBrush="#D0D0D0"
-                    BorderThickness="1">
-                <ComboBoxItem Content="🔴 Alta prioridad" Tag="1"/>
-                <ComboBoxItem Content="🟡 Media prioridad" Tag="2" IsSelected="True"/>
-                <ComboBoxItem Content="🟢 Baja prioridad" Tag="3"/>
-            </ComboBox>
-        </StackPanel>
+                <TextBlock Text="Prioridad"
+                           FontWeight="SemiBold"
+                           Foreground="#0E1A30"
+                           Margin="0,0,0,8"
+                           FontSize="12"/>
+                <ComboBox x:Name="cmbPrioridad"
+                        Margin="0,0,0,20"
+                        Height="38"
+                        Padding="10,8"
+                        FontSize="12"
+                        Background="White"
+                        BorderBrush="#C8D5F2"
+                        BorderThickness="1">
+                    <ComboBoxItem Content="🔴 Alta prioridad" Tag="1"/>
+                    <ComboBoxItem Content="🟡 Media prioridad" Tag="2" IsSelected="True"/>
+                    <ComboBoxItem Content="🟢 Baja prioridad" Tag="3"/>
+                </ComboBox>
+            </StackPanel>
+        </ScrollViewer>
 
         <!-- Footer -->
-        <Border Grid.Row="2" Background="#F8F8F8" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Margin="0">
+        <Border Grid.Row="2" Background="#F2F6FF" BorderBrush="#D6E0F5" BorderThickness="0,1,0,0" Margin="0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="24,14,24,14">
                 <Button x:Name="btnCancelar"
                         Content="Cancelar"
                         Height="38"
                         Width="110"
                         Margin="0,0,10,0"
-                        Background="#F0F0F0"
-                        Foreground="#555555"
+                        Background="#EAF1FF"
+                        Foreground="#2D3B54"
                         FontSize="11"
                         FontWeight="SemiBold"
                         BorderThickness="1"
-                        BorderBrush="#CCCCCC"
+                        BorderBrush="#C8D5F2"
                         Cursor="Hand"
                         Click="btnCancelar_Click"/>
                 <Button x:Name="btnGuardar"
                         Content="Guardar objetivo"
                         Height="38"
                         Width="140"
-                        Background="#D4AF37"
-                        Foreground="#2C2C2C"
+                        Background="#1C5DFF"
+                        Foreground="White"
                         FontSize="11"
                         FontWeight="Bold"
                         BorderThickness="0"

@@ -63,6 +63,9 @@ namespace UNUM
 
                     try
                     {
+                        // Persistir sesión localmente para autorelogin
+                        UNUM.Services.SessionService.SaveSession(usuarioId.Value);
+
                         MainWindow ventanaPrincipal = new MainWindow(usuarioId.Value);
                         ventanaPrincipal.Show();
                         Close();

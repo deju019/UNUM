@@ -19,6 +19,8 @@ namespace UNUM
 
             if (objective is null)
             {
+                // Ensure default selection for new objectives
+                cmbPrioridad.SelectedIndex = 1; // "Media prioridad" by default
                 return;
             }
 

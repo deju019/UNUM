@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 using UNUM.Services;
 using UNUM.ViewModels;
 
@@ -20,31 +21,18 @@ namespace UNUM
             _usuarioId = idUsuarioLogueado;
             var viewModel = new MainWindowViewModel(idUsuarioLogueado, new WindowDialogService());
             viewModel.RequestClose += (_, _) => Close();
+            viewModel.RequestPanelNavigation += ViewModel_RequestPanelNavigation;
             viewModel.TransactionSaved += ViewModel_TransactionSaved;
             viewModel.TransactionsLoaded += ViewModel_TransactionsLoaded;
             viewModel.TransactionDeleted += ViewModel_TransactionDeleted;
-            if (viewModel is System.ComponentModel.INotifyPropertyChanged npc)
-            {
-                npc.PropertyChanged += ViewModel_PropertyChanged;
-            }
             DataContext = viewModel;
             Loaded += MainWindow_Loaded;
             Closed += MainWindow_Closed;
         }
 
-        private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void ViewModel_RequestPanelNavigation(object? sender, MainPanelType panel)
         {
-            if (DataContext is not MainWindowViewModel vm) return;
-
-            if (e.PropertyName == nameof(MainWindowViewModel.IsTransaccionesVisible) && vm.IsTransaccionesVisible)
-            {
-                AnimarCambioPanel(panelSimulador, panelTransacciones, true);
-            }
-
-            if (e.PropertyName == nameof(MainWindowViewModel.IsSimuladorVisible) && vm.IsSimuladorVisible)
-            {
-                AnimarCambioPanel(panelTransacciones, panelSimulador, false);
-            }
+            NavigateToPanel(panel);
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -328,6 +316,7 @@ namespace UNUM
         {
             if (DataContext is MainWindowViewModel viewModel)
             {
+                viewModel.RequestPanelNavigation -= ViewModel_RequestPanelNavigation;
                 viewModel.TransactionSaved -= ViewModel_TransactionSaved;
                 viewModel.TransactionsLoaded -= ViewModel_TransactionsLoaded;
                 viewModel.TransactionDeleted -= ViewModel_TransactionDeleted;
@@ -348,38 +337,101 @@ namespace UNUM
 
         private void gridTransacciones_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
         {
-            if (e.PropertyName != "Fecha" || e.Column is not DataGridTextColumn textColumn)
+            // Format Fecha column
+            if (e.PropertyName == "Fecha" && e.Column is DataGridTextColumn textColumn)
             {
-                return;
+                if (textColumn.Binding is Binding binding)
+                {
+                    binding.StringFormat = "dd/MM/yyyy HH:mm";
+                    textColumn.Binding = binding;
+                    textColumn.Width = 140;
+                }
             }
-
-            if (textColumn.Binding is Binding binding)
+            // Set width for Tipo column
+            else if (e.PropertyName == "Tipo" && e.Column is DataGridTextColumn tipoColumn)
             {
-                binding.StringFormat = "dd/MM/yyyy HH:mm";
-                textColumn.Binding = binding;
+                tipoColumn.Width = 80;
+            }
+            // Set width for Importe column
+            else if (e.PropertyName == "Importe" && e.Column is DataGridTextColumn importeColumn)
+            {
+                importeColumn.Width = 100;
+            }
+            // Set width for Categoria column
+            else if (e.PropertyName == "Categoria" && e.Column is DataGridTextColumn catColumn)
+            {
+                catColumn.Width = 100;
+            }
+            // Set width for Descripcion column
+            else if (e.PropertyName == "Descripcion" && e.Column is DataGridTextColumn descColumn)
+            {
+                descColumn.Width = new DataGridLength(1, DataGridLengthUnitType.Star); // Takes remaining space
             }
         }
 
         private void MainWindow_LoadedForLogo(object sender, RoutedEventArgs e)
         {
-            // Try to load external logo at runtime if present
             try
             {
                 var logoPath = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Assets", "logo.png");
                 if (System.IO.File.Exists(logoPath))
                 {
-                    var bitmap = new System.Windows.Media.Imaging.BitmapImage(new System.Uri(logoPath, System.UriKind.Absolute));
+                    var bitmap = new System.Windows.Media.Imaging.BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.UriSource = new System.Uri(logoPath, System.UriKind.Absolute);
+                    bitmap.DecodePixelWidth = 256; // prefer a higher-res image for taskbar/exe icon clarity
+                    bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                    bitmap.CreateOptions = System.Windows.Media.Imaging.BitmapCreateOptions.IgnoreImageCache;
+                    bitmap.EndInit();
+                    bitmap.Freeze();
+
                     var img = this.FindName("imgLogo") as System.Windows.Controls.Image;
                     if (img is not null)
                     {
                         img.Source = bitmap;
                     }
+
+                    try
+                    {
+                        this.Icon = CreateTaskbarIconWithBackground(bitmap);
+                    }
+                    catch
+                    {
+                        this.Icon = bitmap;
+                    }
                 }
             }
             catch
             {
-                // ignore load errors and leave fallback visuals
+                // Ignore logo loading errors and keep fallback visuals.
             }
+        }
+
+        private static ImageSource CreateTaskbarIconWithBackground(ImageSource logo)
+        {
+            const int size = 256;
+            var visual = new DrawingVisual();
+
+            using (var dc = visual.RenderOpen())
+            {
+                var center = new Point(size / 2.0, size / 2.0);
+                var backgroundBrush = new SolidColorBrush(Color.FromRgb(245, 247, 255));
+                var borderPen = new Pen(new SolidColorBrush(Color.FromRgb(199, 208, 224)), 3);
+
+                backgroundBrush.Freeze();
+                borderPen.Freeze();
+
+                dc.DrawEllipse(backgroundBrush, borderPen, center, 122, 122);
+
+                var margin = 34;
+                var logoRect = new Rect(margin, margin, size - margin * 2, size - margin * 2);
+                dc.DrawImage(logo, logoRect);
+            }
+
+            var rendered = new RenderTargetBitmap(size, size, 96, 96, PixelFormats.Pbgra32);
+            rendered.Render(visual);
+            rendered.Freeze();
+            return (ImageSource)rendered;
         }
 
         private void NavigateToPanel(MainPanelType panel)

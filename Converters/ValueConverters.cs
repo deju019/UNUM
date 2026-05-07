@@ -183,3 +183,26 @@ public class EmptyCollectionToVisibilityConverter : IValueConverter
         throw new NotImplementedException();
     }
 }
+
+/// <summary>
+/// Inverted: Count == 0 → Collapsed, Count > 0 → Visible
+/// </summary>
+public class InvertedEmptyCollectionToVisibilityConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is System.Collections.ICollection collection)
+        {
+            return collection.Count == 0
+                ? System.Windows.Visibility.Collapsed
+                : System.Windows.Visibility.Visible;
+        }
+
+        return System.Windows.Visibility.Collapsed;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        throw new NotImplementedException();
+    }
+}

@@ -5,10 +5,10 @@
     Height="680"
     Width="700"
     WindowStartupLocation="CenterOwner"
-    Background="White"
+    Background="#F8FAFF"
     ResizeMode="NoResize">
-    <Border Background="White"
-            BorderBrush="#FFE3E7EB"
+        <Border Background="#F8FAFF"
+            BorderBrush="#FFD4DFF5"
             BorderThickness="1">
         <Grid>
             <Grid.RowDefinitions>
@@ -21,102 +21,102 @@
                     <TextBlock Text="📱 Bienvenido a UNUM"
                                FontSize="28"
                                FontWeight="Bold"
-                               Foreground="#2C3E50"
+                               Foreground="#0E1A30"
                                Margin="0,0,0,10"/>
 
                     <TextBlock Text="Tu gestor financiero personal completo"
                                FontSize="15"
-                               Foreground="#5A6270"
+                               Foreground="#5A6578"
                                Margin="0,0,0,30"/>
 
                     <TextBlock Text="Transacciones"
                                FontSize="16"
                                FontWeight="Bold"
-                               Foreground="#2C3E50"
+                               Foreground="#0E1A30"
                                Margin="0,0,0,12"/>
 
-                    <Border Background="#F7F9FB" CornerRadius="6" Padding="15" Margin="0,0,0,15">
+                    <Border Background="#EEF3FF" CornerRadius="6" Padding="15" Margin="0,0,0,15">
                         <StackPanel>
-                            <TextBlock Text="✓ Registra tus movimientos" FontSize="13" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,6"/>
-                            <TextBlock Text="Ingresos y gastos clasificados por tipo y categoría. Añade descripción, fecha y importe. Edita o elimina en cualquier momento." FontSize="12" Foreground="#7A8A99" TextWrapping="Wrap"/>
+                            <TextBlock Text="✓ Registra tus movimientos" FontSize="13" FontWeight="SemiBold" Foreground="#0E1A30" Margin="0,0,0,6"/>
+                            <TextBlock Text="Ingresos y gastos clasificados por tipo y categoría. Añade descripción, fecha y importe. Edita o elimina en cualquier momento." FontSize="12" Foreground="#5A6578" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
 
                     <TextBlock Text="Filtros y búsqueda"
                                FontSize="16"
                                FontWeight="Bold"
-                               Foreground="#2C3E50"
+                               Foreground="#0E1A30"
                                Margin="0,0,0,12"/>
 
-                    <Border Background="#F7F9FB" CornerRadius="6" Padding="15" Margin="0,0,0,15">
+                    <Border Background="#EEF3FF" CornerRadius="6" Padding="15" Margin="0,0,0,15">
                         <StackPanel>
-                            <TextBlock Text="🔍 Filtros inteligentes" FontSize="13" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,6"/>
-                            <TextBlock Text="Por tipo, categoría, período y descripción. Los filtros avanzados (fechas e importes) se ocultan por defecto para mayor claridad. Haz clic en 'Filtros avanzados' para expandirlos." FontSize="12" Foreground="#7A8A99" TextWrapping="Wrap"/>
+                            <TextBlock Text="🔍 Filtros inteligentes" FontSize="13" FontWeight="SemiBold" Foreground="#0E1A30" Margin="0,0,0,6"/>
+                            <TextBlock Text="Por tipo, categoría, período y descripción. Los filtros avanzados (fechas e importes) se ocultan por defecto para mayor claridad. Haz clic en 'Filtros avanzados' para expandirlos." FontSize="12" Foreground="#5A6578" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
 
                     <TextBlock Text="Presupuestos"
                                FontSize="16"
                                FontWeight="Bold"
-                               Foreground="#2C3E50"
+                               Foreground="#0E1A30"
                                Margin="0,0,0,12"/>
 
-                    <Border Background="#F7F9FB" CornerRadius="6" Padding="15" Margin="0,0,0,15">
+                    <Border Background="#EEF3FF" CornerRadius="6" Padding="15" Margin="0,0,0,15">
                         <StackPanel>
-                            <TextBlock Text="💰 Controla tus límites de gasto" FontSize="13" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,6"/>
-                            <TextBlock Text="Define un presupuesto mensual por categoría. Visualiza el progreso con barras de porcentaje. Haz clic en 'Editar' para cambiar límites, o en '✕' para eliminar un presupuesto individual." FontSize="12" Foreground="#7A8A99" TextWrapping="Wrap"/>
+                            <TextBlock Text="💰 Controla tus límites de gasto" FontSize="13" FontWeight="SemiBold" Foreground="#0E1A30" Margin="0,0,0,6"/>
+                            <TextBlock Text="Define un presupuesto mensual por categoría. Visualiza el progreso con barras de porcentaje. Haz clic en 'Editar' para cambiar límites, o en '✕' para eliminar un presupuesto individual." FontSize="12" Foreground="#5A6578" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
 
                     <TextBlock Text="Análisis y proyecciones"
                                FontSize="16"
                                FontWeight="Bold"
-                               Foreground="#2C3E50"
+                               Foreground="#0E1A30"
                                Margin="0,0,0,12"/>
 
-                    <Border Background="#F7F9FB" CornerRadius="6" Padding="15" Margin="0,0,0,15">
+                    <Border Background="#EEF3FF" CornerRadius="6" Padding="15" Margin="0,0,0,15">
                         <StackPanel>
-                            <TextBlock Text="📊 Visualiza tu situación financiera" FontSize="13" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,6"/>
-                            <TextBlock Text="Ve tu saldo total, ingresos y gastos. Proyecciones mensuales te muestran tendencias. El saldo se muestra en rojo cuando es negativo para alerta visual." FontSize="12" Foreground="#7A8A99" TextWrapping="Wrap"/>
+                            <TextBlock Text="📊 Visualiza tu situación financiera" FontSize="13" FontWeight="SemiBold" Foreground="#0E1A30" Margin="0,0,0,6"/>
+                            <TextBlock Text="Ve tu saldo total, ingresos y gastos. Proyecciones mensuales te muestran tendencias. El saldo se muestra en rojo cuando es negativo para alerta visual." FontSize="12" Foreground="#5A6578" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
 
                     <TextBlock Text="Objetivos y metas"
                                FontSize="16"
                                FontWeight="Bold"
-                               Foreground="#2C3E50"
+                               Foreground="#0E1A30"
                                Margin="0,0,0,12"/>
 
-                    <Border Background="#F7F9FB" CornerRadius="6" Padding="15" Margin="0,0,0,15">
+                    <Border Background="#EEF3FF" CornerRadius="6" Padding="15" Margin="0,0,0,15">
                         <StackPanel>
-                            <TextBlock Text="🎯 Establece y monitorea tus metas" FontSize="13" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,6"/>
-                            <TextBlock Text="Crea objetivos de ahorro con montos y fechas. Marca el progreso y visualiza cuánto te falta. Útil para metas a corto y largo plazo." FontSize="12" Foreground="#7A8A99" TextWrapping="Wrap"/>
+                            <TextBlock Text="🎯 Establece y monitorea tus metas" FontSize="13" FontWeight="SemiBold" Foreground="#0E1A30" Margin="0,0,0,6"/>
+                            <TextBlock Text="Crea objetivos de ahorro con montos y fechas. Marca el progreso y visualiza cuánto te falta. Útil para metas a corto y largo plazo." FontSize="12" Foreground="#5A6578" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
 
                     <TextBlock Text="Consejos"
                                FontSize="16"
                                FontWeight="Bold"
-                               Foreground="#2C3E50"
+                               Foreground="#0E1A30"
                                Margin="0,0,0,12"/>
 
-                    <Border Background="#F7F9FB" CornerRadius="6" Padding="15" Margin="0,0,0,15">
+                    <Border Background="#EEF3FF" CornerRadius="6" Padding="15" Margin="0,0,0,15">
                         <StackPanel>
-                            <TextBlock Text="💡 Pasa el ratón sobre botones y campos" FontSize="13" FontWeight="SemiBold" Foreground="#2C3E50" Margin="0,0,0,6"/>
-                            <TextBlock Text="Los tooltips ofrecen ayuda contextual en cualquier momento. Usa el botón 'Actualizar' para recargar datos desde la base de datos." FontSize="12" Foreground="#7A8A99" TextWrapping="Wrap"/>
+                            <TextBlock Text="💡 Pasa el ratón sobre botones y campos" FontSize="13" FontWeight="SemiBold" Foreground="#0E1A30" Margin="0,0,0,6"/>
+                            <TextBlock Text="Los tooltips ofrecen ayuda contextual en cualquier momento. Usa el botón 'Actualizar' para recargar datos desde la base de datos." FontSize="12" Foreground="#5A6578" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
 
-                    <Border Background="#FFF0F7F7" CornerRadius="6" Padding="15" BorderBrush="#FF2E86C1" BorderThickness="1">
+                    <Border Background="#EAF1FF" CornerRadius="6" Padding="15" BorderBrush="#1C5DFF" BorderThickness="1">
                         <StackPanel>
-                            <TextBlock Text="✨ ¡Listo para empezar!" FontSize="13" FontWeight="SemiBold" Foreground="#1D4E89" Margin="0,0,0,6"/>
-                            <TextBlock Text="Explora todas las funciones sin presión. Tus datos se guardan automáticamente." FontSize="12" Foreground="#2C3E50" TextWrapping="Wrap"/>
+                            <TextBlock Text="✨ ¡Listo para empezar!" FontSize="13" FontWeight="SemiBold" Foreground="#1C5DFF" Margin="0,0,0,6"/>
+                            <TextBlock Text="Explora todas las funciones sin presión. Tus datos se guardan automáticamente." FontSize="12" Foreground="#0E1A30" TextWrapping="Wrap"/>
                         </StackPanel>
                     </Border>
                 </StackPanel>
             </ScrollViewer>
 
-            <Border Grid.Row="1" Background="#FFF7F9FB" BorderBrush="#FFE3E7EB" BorderThickness="1,1,1,0" Padding="20">
+            <Border Grid.Row="1" Background="#F2F6FF" BorderBrush="#D6E0F5" BorderThickness="1,1,1,0" Padding="20">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -125,11 +125,11 @@
                     <TextBlock Grid.Column="0"
                                Text="Cuando cierres esta ventana, se abrirá la guía interactiva con pasos sobre transacciones, filtros, presupuestos, objetivos y saldo."
                                VerticalAlignment="Center"
-                               Foreground="#5A6270"
+                               Foreground="#5A6578"
                                FontSize="12"
                                TextWrapping="Wrap"
                                Margin="0,0,12,0"/>
-                    <Button x:Name="btnContinuar" Grid.Column="1" Content="Empezar →" Width="120" Height="35" Background="#FF2E86C1" Foreground="White" FontWeight="Bold" Click="btnContinuar_Click" Margin="10,0,0,0"/>
+                    <Button x:Name="btnContinuar" Grid.Column="1" Content="Empezar →" Width="120" Height="35" Background="#1C5DFF" Foreground="White" FontWeight="Bold" Click="btnContinuar_Click" Margin="10,0,0,0"/>
                 </Grid>
             </Border>
         </Grid>

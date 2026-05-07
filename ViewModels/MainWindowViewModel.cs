@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
@@ -192,8 +193,19 @@ public class MainWindowViewModel : ViewModelBase
     public ObservableCollection<ObjectiveItemModel> Objetivos
     {
         get => _objetivos;
-        set => SetProperty(ref _objetivos, value);
+        set
+        {
+            if (SetProperty(ref _objetivos, value))
+            {
+                OnPropertyChanged(nameof(TieneObjetivos));
+                OnPropertyChanged(nameof(NoTieneObjetivos));
+            }
+        }
     }
+
+    public bool TieneObjetivos => _objetivos.Count > 0;
+    
+    public bool NoTieneObjetivos => _objetivos.Count == 0;
 
     public ObjectiveItemModel? ObjetivoSeleccionado
     {
@@ -559,6 +571,10 @@ public class MainWindowViewModel : ViewModelBase
                     PrioridadTexto = PrioridadTexto(prioridad)
                 });
             }
+            
+            // Notify UI that both properties have changed
+            OnPropertyChanged(nameof(Objetivos));
+            OnPropertyChanged(nameof(TieneObjetivos));
         }
         catch (Exception ex)
         {
@@ -787,6 +803,13 @@ public class MainWindowViewModel : ViewModelBase
 
     private void CerrarSesion()
     {
+        // Clear persisted session so reopening the app doesn't auto-login
+        try
+        {
+            UNUM.Services.SessionService.ClearSession();
+        }
+        catch { }
+
         _windowDialogService.ShowInicioWindow();
         RequestClose?.Invoke(this, EventArgs.Empty);
     }
@@ -968,14 +991,15 @@ public class MainWindowViewModel : ViewModelBase
                 return;
             }
 
-            using var writer = new StreamWriter(dialog.FileName, false);
+            const char delimitador = ';';
+            using var writer = new StreamWriter(dialog.FileName, false, new UTF8Encoding(true));
             var columnas = TransaccionesView.Table.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToArray();
-            writer.WriteLine(string.Join(",", columnas.Select(EscapeCsvValue)));
+            writer.WriteLine(string.Join(delimitador, columnas.Select(columna => EscapeCsvValue(columna, delimitador))));
 
             foreach (DataRowView fila in TransaccionesView)
             {
                 var valores = columnas.Select(col => fila.Row[col]?.ToString() ?? string.Empty);
-                writer.WriteLine(string.Join(",", valores.Select(EscapeCsvValue)));
+                writer.WriteLine(string.Join(delimitador, valores.Select(valor => EscapeCsvValue(valor, delimitador))));
             }
 
             System.Windows.MessageBox.Show("CSV exportado correctamente.", "Exportar CSV");
@@ -1514,9 +1538,9 @@ public class MainWindowViewModel : ViewModelBase
             .Replace("*", "[*]");
     }
 
-    private static string EscapeCsvValue(string value)
+    private static string EscapeCsvValue(string value, char delimitador)
     {
-        if (value.Contains('"') || value.Contains(',') || value.Contains('\n') || value.Contains('\r'))
+        if (value.Contains('"') || value.Contains(delimitador) || value.Contains('\n') || value.Contains('\r'))
         {
             return $"\"{value.Replace("\"", "\"\"")}\"";
         }
