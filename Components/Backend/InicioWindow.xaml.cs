@@ -19,17 +19,12 @@ namespace UNUM
 
             try
             {
-                var logoPath = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Assets", "logo.png");
-                if (!System.IO.File.Exists(logoPath))
-                {
-                    return;
-                }
-
                 var bitmap = new BitmapImage();
                 bitmap.BeginInit();
-                bitmap.UriSource = new System.Uri(logoPath, System.UriKind.Absolute);
+                bitmap.UriSource = new System.Uri("pack://application:,,,/Assets/logo.png", System.UriKind.Absolute);
                 bitmap.DecodePixelWidth = 256;
                 bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
                 bitmap.EndInit();
                 bitmap.Freeze();
 

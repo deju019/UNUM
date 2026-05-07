@@ -20,9 +20,7 @@
 
   <!-- Copy Assets folder to output on build -->
   <ItemGroup>
-    <None Update="Assets\**\*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <Resource Include="Assets\logo.png" />
   </ItemGroup>
 
 </Project>

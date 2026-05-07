@@ -30,6 +30,7 @@ public class MainWindowViewModel : ViewModelBase
     // Estado de transacciones
     private DataTable _transacciones = new();
     private DataView _transaccionesView = new();
+    private DataRowView? _transaccionSeleccionada;
     private bool _isLoadingTransactions;
     private string _loadingMessage = "Cargando transacciones...";
 
@@ -122,6 +123,7 @@ public class MainWindowViewModel : ViewModelBase
     public event EventHandler? TransactionSaved;
     public event EventHandler? TransactionsLoaded;
     public event EventHandler? TransactionDeleted;
+    public event EventHandler? TransactionEditStarted;
 
     public MainWindowViewModel(int usuarioId, IWindowDialogService windowDialogService)
     {
@@ -140,6 +142,12 @@ public class MainWindowViewModel : ViewModelBase
     {
         get => _transaccionesView;
         set => SetProperty(ref _transaccionesView, value);
+    }
+
+    public DataRowView? TransaccionSeleccionada
+    {
+        get => _transaccionSeleccionada;
+        set => SetProperty(ref _transaccionSeleccionada, value);
     }
 
     public bool IsLoadingTransactions
@@ -750,7 +758,8 @@ public class MainWindowViewModel : ViewModelBase
 
     private void EditarTransaccion(object? param)
     {
-        if (param is not DataRowView filaSeleccionada)
+        var filaSeleccionada = param as DataRowView ?? TransaccionSeleccionada;
+        if (filaSeleccionada is null)
         {
             System.Windows.MessageBox.Show("Por favor, selecciona una transacción de la tabla para editarla.", "Aviso");
             return;
@@ -767,6 +776,7 @@ public class MainWindowViewModel : ViewModelBase
         IsEditingTransaccion = true;
         TransactionFormTitle = "Editar transacción";
         TransactionSubmitText = "Guardar cambios";
+        TransactionEditStarted?.Invoke(this, EventArgs.Empty);
     }
 
     private void CancelarEdicionTransaccion()
@@ -774,6 +784,7 @@ public class MainWindowViewModel : ViewModelBase
         IsEditingTransaccion = false;
         TransaccionEnEdicionId = 0;
         _fechaHoraOriginalTransaccion = null;
+        TransaccionSeleccionada = null;
         TransactionFormTitle = "Registro de transacciones";
         TransactionSubmitText = "Añadir";
         TipoTransaccion = "Gasto";
@@ -825,7 +836,8 @@ public class MainWindowViewModel : ViewModelBase
 
     private void BorrarTransaccion(object? param)
     {
-        if (param is not DataRowView filaSeleccionada)
+        var filaSeleccionada = param as DataRowView ?? TransaccionSeleccionada;
+        if (filaSeleccionada is null)
         {
             System.Windows.MessageBox.Show("Por favor, selecciona una transacción de la tabla para eliminarla.", "Aviso");
             return;

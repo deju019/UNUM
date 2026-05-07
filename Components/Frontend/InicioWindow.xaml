@@ -40,6 +40,7 @@
                                                         <Ellipse Fill="#1EFFFFFF"/>
                                                         <Border CornerRadius="75" Background="Transparent" Padding="14">
                                                                 <Image x:Name="imgInicioLogo"
+                                                                           Source="pack://application:,,,/Assets/logo.png"
                                                                            Stretch="Uniform"
                                                                            RenderOptions.BitmapScalingMode="HighQuality"
                                                                            UseLayoutRounding="True"

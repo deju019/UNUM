@@ -10,15 +10,6 @@ namespace UNUM
     {
         protected override void OnStartup(StartupEventArgs e)
         {
-            try
-            {
-                var authService = new AuthService();
-                authService.EnsureDemoUser("unum_demo", "Demo1234");
-            }
-            catch
-            {
-                // No bloquear el arranque de la app si la BD no esta disponible.
-            }
             // Control manual de la ventana de arranque para soportar autorelogin
             base.OnStartup(e);
 

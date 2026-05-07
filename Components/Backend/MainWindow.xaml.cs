@@ -25,6 +25,7 @@ namespace UNUM
             viewModel.TransactionSaved += ViewModel_TransactionSaved;
             viewModel.TransactionsLoaded += ViewModel_TransactionsLoaded;
             viewModel.TransactionDeleted += ViewModel_TransactionDeleted;
+            viewModel.TransactionEditStarted += ViewModel_TransactionEditStarted;
             DataContext = viewModel;
             Loaded += MainWindow_Loaded;
             Closed += MainWindow_Closed;
@@ -109,6 +110,18 @@ namespace UNUM
         private void ViewModel_TransactionDeleted(object? sender, EventArgs e)
         {
             AvanzarTutorialSiAplica(TutorialPaso.PedirBorrar);
+        }
+
+        private void ViewModel_TransactionEditStarted(object? sender, EventArgs e)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                NavigateToPanel(MainPanelType.Transacciones);
+                mainScrollViewer.ScrollToTop();
+                borderRegistroTransaccion.BringIntoView();
+                txtImporte.Focus();
+                txtImporte.SelectAll();
+            }), System.Windows.Threading.DispatcherPriority.Loaded);
         }
 
         private void AvanzarTutorialSiAplica(TutorialPaso pasoEsperado)
@@ -320,6 +333,7 @@ namespace UNUM
                 viewModel.TransactionSaved -= ViewModel_TransactionSaved;
                 viewModel.TransactionsLoaded -= ViewModel_TransactionsLoaded;
                 viewModel.TransactionDeleted -= ViewModel_TransactionDeleted;
+                viewModel.TransactionEditStarted -= ViewModel_TransactionEditStarted;
             }
 
             if (_onboardingGuideWindow is not null)
@@ -337,6 +351,13 @@ namespace UNUM
 
         private void gridTransacciones_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
         {
+            // Hide technical identifier from the user-facing grid
+            if (e.PropertyName == "Id")
+            {
+                e.Cancel = true;
+                return;
+            }
+
             // Format Fecha column
             if (e.PropertyName == "Fecha" && e.Column is DataGridTextColumn textColumn)
             {
@@ -373,37 +394,50 @@ namespace UNUM
         {
             try
             {
-                var logoPath = System.IO.Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "Assets", "logo.png");
-                if (System.IO.File.Exists(logoPath))
+                var bitmap = LoadLogoBitmap();
+                if (bitmap is null)
                 {
-                    var bitmap = new System.Windows.Media.Imaging.BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.UriSource = new System.Uri(logoPath, System.UriKind.Absolute);
-                    bitmap.DecodePixelWidth = 256; // prefer a higher-res image for taskbar/exe icon clarity
-                    bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
-                    bitmap.CreateOptions = System.Windows.Media.Imaging.BitmapCreateOptions.IgnoreImageCache;
-                    bitmap.EndInit();
-                    bitmap.Freeze();
+                    return;
+                }
 
-                    var img = this.FindName("imgLogo") as System.Windows.Controls.Image;
-                    if (img is not null)
-                    {
-                        img.Source = bitmap;
-                    }
+                var img = this.FindName("imgLogo") as System.Windows.Controls.Image;
+                if (img is not null)
+                {
+                    img.Source = bitmap;
+                }
 
-                    try
-                    {
-                        this.Icon = CreateTaskbarIconWithBackground(bitmap);
-                    }
-                    catch
-                    {
-                        this.Icon = bitmap;
-                    }
+                try
+                {
+                    this.Icon = CreateTaskbarIconWithBackground(bitmap);
+                }
+                catch
+                {
+                    this.Icon = bitmap;
                 }
             }
             catch
             {
                 // Ignore logo loading errors and keep fallback visuals.
+            }
+        }
+
+        private static BitmapImage? LoadLogoBitmap()
+        {
+            try
+            {
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = new Uri("pack://application:,,,/Assets/logo.png", UriKind.Absolute);
+                bitmap.DecodePixelWidth = 256;
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.CreateOptions = BitmapCreateOptions.IgnoreImageCache;
+                bitmap.EndInit();
+                bitmap.Freeze();
+                return bitmap;
+            }
+            catch
+            {
+                return null;
             }
         }
 
