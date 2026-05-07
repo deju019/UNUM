@@ -43,6 +43,7 @@ namespace UNUM
             viewModel.CargarObjetivos();
             viewModel.RestaurarEstadoFiltros();
             await viewModel.CargarHistorialAsync();
+
             MostrarOnboardingSiCorresponde();
             IniciarAnimacionesIniciales();
             // Attempt to load external logo into the sidebar (if Assets/logo.png exists)

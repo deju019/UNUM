@@ -15,7 +15,7 @@ namespace UNUM
 
             try
             {
-                var saved = UNUM.Services.SessionService.LoadSession();
+                var saved = SessionService.LoadSession();
                 if (saved.HasValue)
                 {
                     // Intentar abrir MainWindow con el id guardado
@@ -28,7 +28,7 @@ namespace UNUM
                     catch
                     {
                         // Si falla (BD, usuario eliminado...), limpiar sesión y caer al inicio
-                        UNUM.Services.SessionService.ClearSession();
+                        SessionService.ClearSession();
                     }
                 }
             }
@@ -39,5 +39,4 @@ namespace UNUM
             inicio.Show();
         }
     }
-
 }

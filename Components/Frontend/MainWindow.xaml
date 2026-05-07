@@ -140,7 +140,7 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
@@ -704,7 +704,8 @@
                                                     CommandParameter="{Binding}"
                                                     Background="#1C5DFF"
                                                     Foreground="White"
-                                                    FontWeight="Bold"/>
+                                                    FontWeight="Bold"
+                                                    Visibility="{Binding TienePresupuestoReal, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
                                             <Button Grid.Row="0"
                                                     Grid.Column="3"
@@ -718,7 +719,8 @@
                                                     Background="#FFDC3545"
                                                     Foreground="White"
                                                     FontWeight="Bold"
-                                                    ToolTip="Eliminar este presupuesto"/>
+                                                    ToolTip="Eliminar este presupuesto"
+                                                    Visibility="{Binding TienePresupuestoReal, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
                                             <ProgressBar Grid.Row="1"
                                                          Grid.Column="0"
@@ -971,7 +973,7 @@
                                             Margin="0,0,0,18">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0"
@@ -981,13 +983,14 @@
                                Foreground="#FF2C3E50"
                                Margin="0,0,0,8"/>
 
-                    <Border Grid.Row="1"
-                            Background="#FFFDFEFF"
-                            BorderBrush="#FFE1E8F4"
-                            BorderThickness="1"
-                            CornerRadius="12"
-                            Padding="1"
-                            SnapsToDevicePixels="True">
+                    <Grid Grid.Row="1"
+                          MinHeight="120">
+                        <Border Background="#FFFDFEFF"
+                                BorderBrush="#FFE1E8F4"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="1"
+                                SnapsToDevicePixels="True">
                         <DataGrid x:Name="gridTransacciones"
                                   ItemsSource="{Binding TransaccionesView}"
                                   SelectedItem="{Binding TransaccionSeleccionada, Mode=TwoWay}"
@@ -998,6 +1001,8 @@
                                   SelectionMode="Single"
                                   SelectionUnit="FullRow"
                                   RowHeight="36"
+                                  MaxHeight="420"
+                                  VerticalScrollBarVisibility="Auto"
                                   HeadersVisibility="Column"
                                   GridLinesVisibility="None"
                                   AutoGeneratingColumn="gridTransacciones_AutoGeneratingColumn">
@@ -1055,7 +1060,8 @@
                                 BorderThickness="1"
                                 CornerRadius="8"
                                 Margin="12"
-                                Padding="20">
+                                Padding="20"
+                                Panel.ZIndex="1">
                             <StackPanel HorizontalAlignment="Center"
                                         VerticalAlignment="Center">
                                 <TextBlock Text="No hay transacciones para mostrar"
@@ -1074,7 +1080,8 @@
                         <Border x:Name="panelCargaTransacciones"
                             Visibility="{Binding IsLoadingTransactions, Converter={StaticResource BooleanToVisibilityConverter}}"
                                 Background="#AAFFFFFF"
-                                CornerRadius="8">
+                                CornerRadius="8"
+                                Panel.ZIndex="2">
                             <StackPanel HorizontalAlignment="Center"
                                         VerticalAlignment="Center">
                                 <ProgressBar Width="220"
@@ -1089,10 +1096,17 @@
                             </StackPanel>
                         </Border>
                     </Grid>
+
                 </Grid>
 
-                                        <Grid x:Name="panelAccionesRapidas" Grid.Row="6"
-                                            Margin="0,14,0,28">
+                <Border x:Name="borderAccionesRapidas" Grid.Row="6"
+                        Background="#FFF8FAFF"
+                        BorderBrush="#FFD6E0F5"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="14,14,14,12"
+                        Margin="0,20,0,28">
+                                        <Grid x:Name="panelAccionesRapidas">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -1155,12 +1169,16 @@
                         FontWeight="Bold"/>
                 </Grid>
 
+                </Border>
+
+            </Grid>
+
                 <Grid x:Name="panelSimulador"
                     Visibility="{Binding IsSimuladorVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <Border Grid.Row="0"

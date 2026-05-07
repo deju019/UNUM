@@ -78,12 +78,14 @@ public class CategoryAnalyticsModel
 /// </summary>
 public class BudgetCategoryModel
 {
+    public int Id { get; set; }
     public string Categoria { get; set; } = string.Empty;
     public decimal Gastado { get; set; }
     public decimal Limite { get; set; }
     public decimal Porcentaje { get; set; }
     public string Resumen { get; set; } = string.Empty;
     public string ColorHex { get; set; } = "#28A745";
+    public bool TienePresupuestoReal => Id > 0;
 }
 
 /// <summary>

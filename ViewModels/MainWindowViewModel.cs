@@ -25,6 +25,7 @@ public class MainWindowViewModel : ViewModelBase
     private readonly int _usuarioId;
     private readonly TransactionService _transactionService;
     private readonly ObjectiveService _objectiveService;
+    private readonly BudgetService _budgetService;
     private readonly IWindowDialogService _windowDialogService;
 
     // Estado de transacciones
@@ -41,8 +42,8 @@ public class MainWindowViewModel : ViewModelBase
     private ObservableCollection<MonthlyRiskBadgeModel> _riskBadges = new();
     private ObservableCollection<CategoryAnalyticsModel> _topCategoriasGasto = new();
 
-    // Presupuestos
-    private Dictionary<string, decimal> _presupuestosCategorias = new(StringComparer.OrdinalIgnoreCase);
+    // Presupuestos (origen: tabla Presupuestos)
+    private readonly Dictionary<string, (int Id, decimal Limite)> _presupuestosPorCategoria = new(StringComparer.OrdinalIgnoreCase);
     private ObservableCollection<BudgetCategoryModel> _presupuestosUI = new();
 
     // Objetivos (simulador)
@@ -84,7 +85,7 @@ public class MainWindowViewModel : ViewModelBase
     // Presupuestos formulario
     private string _presupuestoCategoriaSeleccionada = string.Empty;
     private string _presupuestoLimiteMensual = string.Empty;
-    private string _presupuestoEnEdicionCategoria = string.Empty;
+    private int _presupuestoEnEdicionId;
     private bool _isEditingPresupuesto;
     private ObservableCollection<string> _opcionesPresupuestoCategoria = new();
 
@@ -131,6 +132,7 @@ public class MainWindowViewModel : ViewModelBase
         _windowDialogService = windowDialogService;
         _transactionService = new TransactionService();
         _objectiveService = new ObjectiveService();
+        _budgetService = new BudgetService();
 
         InitializarOpciones();
         InitializarFiltros();
@@ -438,12 +440,6 @@ public class MainWindowViewModel : ViewModelBase
         }
     }
 
-    public string PresupuestoEnEdicionCategoria
-    {
-        get => _presupuestoEnEdicionCategoria;
-        set => SetProperty(ref _presupuestoEnEdicionCategoria, value);
-    }
-
     public string PresupuestoFormTitle => IsEditingPresupuesto ? "Editar presupuesto" : "Presupuestos mensuales por categoría";
 
     public string PresupuestoSaveText => IsEditingPresupuesto ? "Actualizar" : "Guardar";
@@ -527,31 +523,23 @@ public class MainWindowViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Carga presupuestos del usuario desde disco.
+    /// Carga presupuestos del usuario desde la base de datos.
     /// </summary>
     public void CargarPresupuestos()
     {
         try
         {
-            var ruta = ObtenerRutaPresupuestos();
-            if (!File.Exists(ruta)) return;
-
-            var json = File.ReadAllText(ruta);
-            var mapa = JsonSerializer.Deserialize<Dictionary<int, Dictionary<string, decimal>>>(json)
-                       ?? new Dictionary<int, Dictionary<string, decimal>>();
-
-            _presupuestosCategorias.Clear();
-            if (mapa.TryGetValue(_usuarioId, out var presupuestosUsuario) && presupuestosUsuario is not null)
+            _presupuestosPorCategoria.Clear();
+            foreach (var row in _budgetService.GetBudgetsByUser(_usuarioId))
             {
-                foreach (var kv in presupuestosUsuario)
-                {
-                    _presupuestosCategorias[kv.Key] = kv.Value;
-                }
+                _presupuestosPorCategoria[row.Categoria] = (row.Id, row.LimiteMensual);
             }
+
+            ActualizarPanelPresupuestos();
         }
-        catch
+        catch (Exception ex)
         {
-            // Fallo silencioso
+            MessageBox.Show($"Error al cargar presupuestos: {ex.Message}", "Presupuestos", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -1036,28 +1024,44 @@ public class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        if (IsEditingPresupuesto && !string.IsNullOrWhiteSpace(PresupuestoEnEdicionCategoria) &&
-            !string.Equals(PresupuestoEnEdicionCategoria, PresupuestoCategoriaSeleccionada, StringComparison.OrdinalIgnoreCase))
+        try
         {
-            _presupuestosCategorias.Remove(PresupuestoEnEdicionCategoria);
-        }
+            if (IsEditingPresupuesto && _presupuestoEnEdicionId > 0)
+            {
+                if (!_budgetService.Update(_presupuestoEnEdicionId, _usuarioId, PresupuestoCategoriaSeleccionada, limite))
+                {
+                    System.Windows.MessageBox.Show("No se pudo actualizar el presupuesto (¿sigue existiendo?).", "Presupuestos");
+                    return;
+                }
+            }
+            else
+            {
+                _budgetService.Insert(_usuarioId, PresupuestoCategoriaSeleccionada, limite);
+            }
 
-        _presupuestosCategorias[PresupuestoCategoriaSeleccionada] = limite;
-        GuardarPresupuestosCategorias();
-        ActualizarPanelPresupuestos();
-        PresupuestoLimiteMensual = string.Empty;
-        CancelarEdicionPresupuesto();
+            CargarPresupuestos();
+            PresupuestoLimiteMensual = string.Empty;
+            CancelarEdicionPresupuesto();
+        }
+        catch (InvalidOperationException ex)
+        {
+            System.Windows.MessageBox.Show(ex.Message, "Presupuestos");
+        }
+        catch (Exception ex)
+        {
+            System.Windows.MessageBox.Show($"Error al guardar el presupuesto: {ex.Message}", "Presupuestos");
+        }
     }
 
     private void EditarPresupuesto(object? parameter)
     {
-        if (parameter is not BudgetCategoryModel presupuesto)
+        if (parameter is not BudgetCategoryModel presupuesto || presupuesto.Id <= 0)
         {
             System.Windows.MessageBox.Show("Selecciona un presupuesto para editar.", "Presupuestos");
             return;
         }
 
-        PresupuestoEnEdicionCategoria = presupuesto.Categoria;
+        _presupuestoEnEdicionId = presupuesto.Id;
         PresupuestoCategoriaSeleccionada = presupuesto.Categoria;
         PresupuestoLimiteMensual = presupuesto.Limite > 0
             ? presupuesto.Limite.ToString(CultureInfo.CurrentCulture)
@@ -1067,7 +1071,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private void CancelarEdicionPresupuesto()
     {
-        PresupuestoEnEdicionCategoria = string.Empty;
+        _presupuestoEnEdicionId = 0;
         IsEditingPresupuesto = false;
         PresupuestoLimiteMensual = string.Empty;
         if (OpcionesPresupuestoCategoria.Count > 0)
@@ -1089,9 +1093,15 @@ public class MainWindowViewModel : ViewModelBase
             return;
         }
 
-        _presupuestosCategorias.Clear();
-        GuardarPresupuestosCategorias();
-        ActualizarPanelPresupuestos();
+        try
+        {
+            _budgetService.DeleteAllForUser(_usuarioId);
+            CargarPresupuestos();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error al borrar presupuestos: {ex.Message}", "Presupuestos", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     private void EliminarPresupuesto(object? parameter)
@@ -1101,14 +1111,27 @@ public class MainWindowViewModel : ViewModelBase
             return;
         }
 
+        if (presupuesto.Id <= 0)
+        {
+            return;
+        }
+
         if (System.Windows.MessageBox.Show($"¿Quieres borrar el presupuesto de '{presupuesto.Categoria}'?", "Eliminar presupuesto", System.Windows.MessageBoxButton.YesNo) != System.Windows.MessageBoxResult.Yes)
         {
             return;
         }
 
-        _presupuestosCategorias.Remove(presupuesto.Categoria);
-        GuardarPresupuestosCategorias();
-        ActualizarPanelPresupuestos();
+        try
+        {
+            if (_budgetService.Delete(presupuesto.Id, _usuarioId))
+            {
+                CargarPresupuestos();
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error al eliminar presupuesto: {ex.Message}", "Presupuestos", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     private void NuevoObjetivo()
@@ -1196,11 +1219,13 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         var items = new List<BudgetCategoryModel>();
-        foreach (var presupuesto in _presupuestosCategorias.OrderBy(x => x.Key))
+        foreach (var presupuesto in _presupuestosPorCategoria.OrderBy(x => x.Key))
         {
+            var limite = presupuesto.Value.Limite;
+            var id = presupuesto.Value.Id;
             gastoPorCategoria.TryGetValue(presupuesto.Key, out var gastado);
-            var porcentaje = presupuesto.Value > 0
-                ? Math.Min(100m, decimal.Round((gastado / presupuesto.Value) * 100m, 1))
+            var porcentaje = limite > 0
+                ? Math.Min(100m, decimal.Round((gastado / limite) * 100m, 1))
                 : 0m;
 
             var colorHex = porcentaje >= 100m
@@ -1211,11 +1236,12 @@ public class MainWindowViewModel : ViewModelBase
 
             items.Add(new BudgetCategoryModel
             {
+                Id = id,
                 Categoria = presupuesto.Key,
                 Gastado = gastado,
-                Limite = presupuesto.Value,
+                Limite = limite,
                 Porcentaje = porcentaje,
-                Resumen = $"{gastado:0.00} € / {presupuesto.Value:0.00} €",
+                Resumen = $"{gastado:0.00} € / {limite:0.00} €",
                 ColorHex = colorHex
             });
         }
@@ -1571,12 +1597,6 @@ public class MainWindowViewModel : ViewModelBase
         };
     }
 
-    private static string ObtenerRutaPresupuestos()
-    {
-        var carpeta = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UNUM");
-        return Path.Combine(carpeta, "presupuestos-mainwindow.json");
-    }
-
     private static string ObtenerRutaEstadoFiltros()
     {
         var carpeta = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UNUM");
@@ -1593,40 +1613,6 @@ public class MainWindowViewModel : ViewModelBase
 
         var json = File.ReadAllText(ruta);
         return JsonSerializer.Deserialize<Dictionary<int, FilterStateModel>>(json) ?? new Dictionary<int, FilterStateModel>();
-    }
-
-    private void GuardarPresupuestosCategorias()
-    {
-        try
-        {
-            var ruta = ObtenerRutaPresupuestos();
-            var carpeta = Path.GetDirectoryName(ruta);
-            if (!string.IsNullOrWhiteSpace(carpeta))
-            {
-                Directory.CreateDirectory(carpeta);
-            }
-
-            Dictionary<int, Dictionary<string, decimal>> mapa;
-            if (File.Exists(ruta))
-            {
-                var jsonActual = File.ReadAllText(ruta);
-                mapa = JsonSerializer.Deserialize<Dictionary<int, Dictionary<string, decimal>>>(jsonActual)
-                       ?? new Dictionary<int, Dictionary<string, decimal>>();
-            }
-            else
-            {
-                mapa = new Dictionary<int, Dictionary<string, decimal>>();
-            }
-
-            mapa[_usuarioId] = _presupuestosCategorias.ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
-
-            var json = JsonSerializer.Serialize(mapa, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(ruta, json);
-        }
-        catch
-        {
-            // Fallo silencioso
-        }
     }
 
     #endregion
