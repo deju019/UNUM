@@ -219,6 +219,45 @@
                             </StackPanel>
                         </Grid>
 
+                        <!-- Fila 2.5: Aporte a objetivo (solo visible en Ingreso) -->
+                        <Border Margin="0,0,0,12"
+                                Visibility="{Binding IsAporteObjetivoVisible, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                Background="#EEF4FF"
+                                BorderBrush="#BDD6F5"
+                                BorderThickness="1"
+                                CornerRadius="4"
+                                Padding="10,8">
+                            <StackPanel>
+                                <CheckBox Content="Aportar parte de este ingreso a un objetivo de ahorro"
+                                          IsChecked="{Binding AportarAObjetivo, Mode=TwoWay}"
+                                          FontSize="12"
+                                          FontWeight="SemiBold"
+                                          Foreground="#1C5DFF"
+                                          Margin="0,0,0,8"/>
+                                <Grid Visibility="{Binding IsDetalleAporteVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                        <TextBlock Text="Objetivo" FontWeight="SemiBold" Margin="0,0,0,4" FontSize="12"/>
+                                        <ComboBox Height="32"
+                                                  ItemsSource="{Binding ObjetivosParaAporte}"
+                                                  SelectedItem="{Binding ObjetivoAporteSeleccionado, Mode=TwoWay}"
+                                                  DisplayMemberPath="Nombre"
+                                                  ToolTip="Objetivo al que se asignará el aporte"/>
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1">
+                                        <TextBlock Text="Importe a aportar (€)" FontWeight="SemiBold" Margin="0,0,0,4" FontSize="12"/>
+                                        <TextBox Height="32"
+                                                 Text="{Binding ImporteAporte, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                 ToolTip="Cantidad a asignar al objetivo"
+                                                 Padding="8,6"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
                         <!-- Fila 3: Información + Botones -->
                         <Grid>
                             <Grid.ColumnDefinitions>

@@ -41,7 +41,7 @@ namespace UNUM
         {
             var (paso, titulo) = _pasoActual switch
             {
-                TutorialPaso.ExplicarRegistro => (1, "Primero: registra una transacción\n\nEl formulario de arriba te permite elegir tipo, categoría, importe, descripción y fecha. Al pulsar 'Añadir' se guarda el movimiento."),
+                TutorialPaso.ExplicarRegistro => (1, "Primero: registra una transacción\n\nEl formulario te permite elegir tipo, categoría, importe, descripción y fecha. Si el tipo es Ingreso, puedes marcar 'Aportar a objetivo' para asignar parte del importe a un objetivo de ahorro. Al pulsar 'Añadir' se guarda el movimiento."),
                 TutorialPaso.EsperarAñadir => (2, "Haz una prueba con una transacción\n\nCuando pulses 'Añadir', el tutorial avanzará solo al siguiente paso."),
                 TutorialPaso.MostrarHistorial => (3, "Aquí aparece el historial\n\nLa app baja sola a esta zona para enseñarte dónde ver lo que acabas de crear. Desde aquí puedes exportar y revisar todo."),
                 TutorialPaso.ExplicarAcciones => (4, "Acciones rápidas\n\nExporta a CSV, borra la transacción marcada o edítala. Los botones están pensados para trabajar sobre la fila seleccionada."),

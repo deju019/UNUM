@@ -49,6 +49,12 @@ public class MainWindowViewModel : ViewModelBase
     // Objetivos (simulador)
     private ObservableCollection<ObjectiveItemModel> _objetivos = new();
     private ObjectiveItemModel? _objetivoSeleccionado;
+
+    // Aporte a objetivo desde ingreso
+    private bool _aportarAObjetivo;
+    private ObservableCollection<ObjectiveItemModel> _objetivosParaAporte = new();
+    private ObjectiveItemModel? _objetivoAporteSeleccionado;
+    private string _importeAporte = string.Empty;
     private bool _menuTransaccionesActivo = true;
     private bool _menuSimuladorActivo;
     private bool _isTransaccionesVisible = true;
@@ -255,8 +261,51 @@ public class MainWindowViewModel : ViewModelBase
             if (SetProperty(ref _tipoTransaccion, value))
             {
                 ActualizarCategoriasPorTipo();
+                OnPropertyChanged(nameof(IsAporteObjetivoVisible));
+                if (!string.Equals(value, "Ingreso", StringComparison.OrdinalIgnoreCase))
+                {
+                    AportarAObjetivo = false;
+                    ImporteAporte = string.Empty;
+                    ObjetivoAporteSeleccionado = null;
+                }
             }
         }
+    }
+
+    public bool IsAporteObjetivoVisible =>
+        string.Equals(_tipoTransaccion, "Ingreso", StringComparison.OrdinalIgnoreCase);
+
+    public bool AportarAObjetivo
+    {
+        get => _aportarAObjetivo;
+        set
+        {
+            if (SetProperty(ref _aportarAObjetivo, value))
+            {
+                if (value) CargarObjetivosParaAporte();
+                OnPropertyChanged(nameof(IsDetalleAporteVisible));
+            }
+        }
+    }
+
+    public bool IsDetalleAporteVisible => _aportarAObjetivo && IsAporteObjetivoVisible;
+
+    public ObservableCollection<ObjectiveItemModel> ObjetivosParaAporte
+    {
+        get => _objetivosParaAporte;
+        set => SetProperty(ref _objetivosParaAporte, value);
+    }
+
+    public ObjectiveItemModel? ObjetivoAporteSeleccionado
+    {
+        get => _objetivoAporteSeleccionado;
+        set => SetProperty(ref _objetivoAporteSeleccionado, value);
+    }
+
+    public string ImporteAporte
+    {
+        get => _importeAporte;
+        set => SetProperty(ref _importeAporte, value);
     }
 
     public string CategoriaTransaccion
@@ -728,12 +777,25 @@ public class MainWindowViewModel : ViewModelBase
             {
                 _transactionService.AddTransaction(_usuarioId, TipoTransaccion, CategoriaTransaccion, importe, fechaParaGuardar, DescripcionTransaccion);
 
+                if (AportarAObjetivo && ObjetivoAporteSeleccionado is not null
+                    && decimal.TryParse(ImporteAporte, System.Globalization.NumberStyles.Number,
+                        System.Globalization.CultureInfo.CurrentCulture, out var importeAporte)
+                    && importeAporte > 0)
+                {
+                    var nuevoAhorro = ObjetivoAporteSeleccionado.AhorroActual + importeAporte;
+                    _objectiveService.UpdateCurrentSavings(ObjetivoAporteSeleccionado.Id, _usuarioId, nuevoAhorro);
+                    CargarObjetivos();
+                }
+
                 System.Windows.MessageBox.Show("Transacción registrada con éxito.", "Operación Completada");
                 TransactionSaved?.Invoke(this, EventArgs.Empty);
 
                 ImporteTransaccion = string.Empty;
                 DescripcionTransaccion = string.Empty;
                 FechaTransaccion = DateTime.Today;
+                AportarAObjetivo = false;
+                ImporteAporte = string.Empty;
+                ObjetivoAporteSeleccionado = null;
             }
 
             _ = CargarHistorialAsync();
@@ -780,6 +842,9 @@ public class MainWindowViewModel : ViewModelBase
         ImporteTransaccion = string.Empty;
         DescripcionTransaccion = string.Empty;
         FechaTransaccion = DateTime.Today;
+        AportarAObjetivo = false;
+        ImporteAporte = string.Empty;
+        ObjetivoAporteSeleccionado = null;
         ActualizarCategoriasPorTipo();
     }
 
@@ -1584,6 +1649,33 @@ public class MainWindowViewModel : ViewModelBase
         }
 
         return value;
+    }
+
+    private void CargarObjetivosParaAporte()
+    {
+        try
+        {
+            var table = _objectiveService.GetObjectives(_usuarioId);
+            ObjetivosParaAporte.Clear();
+            foreach (DataRow row in table.Rows)
+            {
+                var prioridad = row["Prioridad"] == DBNull.Value ? 0 : Convert.ToInt32(row["Prioridad"]);
+                ObjetivosParaAporte.Add(new ObjectiveItemModel
+                {
+                    Id = row["Id"] == DBNull.Value ? 0 : Convert.ToInt32(row["Id"]),
+                    Nombre = row["Nombre"]?.ToString() ?? string.Empty,
+                    CosteTotal = row["CosteTotal"] == DBNull.Value ? 0m : Convert.ToDecimal(row["CosteTotal"]),
+                    AhorroActual = row["AhorroActual"] == DBNull.Value ? 0m : Convert.ToDecimal(row["AhorroActual"]),
+                    Porcentaje = row["ProgresoPorcentaje"] == DBNull.Value ? 0m : Convert.ToDecimal(row["ProgresoPorcentaje"]),
+                    Prioridad = prioridad,
+                    PrioridadTexto = PrioridadTexto(prioridad)
+                });
+            }
+
+            if (ObjetivosParaAporte.Count > 0)
+                ObjetivoAporteSeleccionado = ObjetivosParaAporte[0];
+        }
+        catch { }
     }
 
     private static string PrioridadTexto(int prioridad)
